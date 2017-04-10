@@ -17,7 +17,7 @@ void main( void ) {
 	// Calculate starting values for Mandelbrot set for the pixel
 	vec2 c = vec2(-zoom/2.0 - 1.0,-zoom/2.0) + uv;
 
-	highp vec3 shade = vec3(0.0);
+    float shade = 0.0;
 
 	// Mandelbrot loop.
 	vec2 z = vec2(0.0);
@@ -26,11 +26,11 @@ void main( void ) {
 		z = vec2(z.x*z.x - z.y*z.y, 2.*z.x*z.y) + c;
 
 		// break if point becomes greater than 2.0
-		if (distance(z.x, z.y) > MAX_DISTANCE) break;
+		if (length(z) > MAX_DISTANCE) break;
 
-		shade += vec3(1.0-dot(z,z)*0.125,0.5,1.0);
+		shade+=max(abs(sin(u_time*5e-1))*3., 0.1);
 	}
 
-	shade = 2e-2*(shade - log2(log2(dot(z,z)))); 
-	gl_FragColor = vec4(shade, 1.0);
+	shade = 2e-2*(shade - log2(log2(dot(z,z))));
+	gl_FragColor = vec4(vec3(shade), 1.0);
 }
