@@ -8,7 +8,7 @@ uniform float u_time;
 uniform vec2 u_mouse;
 uniform vec2 u_resolution;
 
-vec2 eyePosition=vec2(0.0,20.0);
+const vec2 eyePosition = vec2(0.0,20.0);
 
 bool inCircle(vec2 circleCenter, float radius){
 	vec2 temp = gl_FragCoord.xy - circleCenter.xy;

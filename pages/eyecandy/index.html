@@ -47,7 +47,7 @@
     <div class="social">
       <a href="https://github.com/Mourtz" target="_blank"><i class="fa fa-github"></i></a>
       <a href="https://twitter.com/mourtz_alex" target="_blank"><i class="fa fa-twitter"></i></a>
-      <a href="https://www.linkedin.com/in/mourtz" target="_blank"><i class="fa fa-linkedin"></i></a>
+      <!-- <a href="https://www.linkedin.com/in/mourtz" target="_blank"><i class="fa fa-linkedin"></i></a> -->
       <a href="http://stackoverflow.com/users/4205263/alex-mourtziapis" target="_blank"><i class="fa fa-stack-overflow"></i></a>
     </div>
   </nav>
@@ -63,7 +63,7 @@
     </div>
 -->
     <div id="invaders">
-      <h1>Space Invaders<h4><u>11/2/2017</u></h4></h1> A simple space invaders game written entire in GLSL.<br><br>
+      <h1>Space Invaders<h4><u>11/2/2017</u></h4></h1> A simple space invaders game written entirely in GLSL.<br><br>
       Controls:<br>
       - Left and Right Arrow keys or mouse to move your spacecraft<br>
       - Up Arrow to shoot<br>
@@ -82,11 +82,13 @@
       <a href="../../shaders/shader4.glsl"><i class="fa fa-file-code-o fa-2x"></i></a>
     </div>
 
+<!--
     <h1>PacMan <h4><u>16/8/2015</u></h4></h1>
     <div id="PacMan-wrapper"></div>
     <br>
     <a href="../../shaders/shader2.glsl"><i class="fa fa-file-code-o fa-2x"></i></a>
-
+-->
+    <br>
   </content>
 
   <!-- jQuery -->
@@ -116,13 +118,13 @@
     function load_all_GlslCanvas(id) {
       let sandbox = null;
 
-      sandbox = new GlslViewport(null, {
-        fragmentString: fetchHTTP("../../shaders/shader2.glsl"),
-        width: w,
-        height: 120
-      });
-      document.getElementById('PacMan-wrapper').appendChild(sandbox.canvas);
-      billboards.push(sandbox);
+//      sandbox = new GlslViewport(null, {
+//        fragmentString: fetchHTTP("../../shaders/shader2.glsl"),
+//        width: w,
+//        height: 120
+//      });
+//      document.getElementById('PacMan-wrapper').appendChild(sandbox.canvas);
+//      billboards.push(sandbox);
 
       if (!window.mobilecheck()) {
         sandbox = new GlslViewport(null, {
