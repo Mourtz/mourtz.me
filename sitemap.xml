@@ -6,44 +6,47 @@
             http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 <!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
 
+
 <url>
-  <loc>http://alexmourtziapis.me/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>1.00</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/projects/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/projects/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/eyecandy/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/eyecandy/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/gl_benchmarking/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/gl_benchmarking/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/cpp-tricks/const/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/Mandelbrot%20set/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/GDB-RE/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/post-processing/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/Mandelbrot%20set/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/GDB-RE/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
 <url>
-  <loc>http://alexmourtziapis.me/pages/post-processing/</loc>
-  <lastmod>2016-09-01T18:50:32+00:00</lastmod>
-  <changefreq>monthly</changefreq>
+  <loc>https://amourtziapis.me/pages/cpp-tricks/const/</loc>
+  <lastmod>2018-07-23T18:32:16+00:00</lastmod>
+  <priority>0.80</priority>
 </url>
+
+
 </urlset>
