@@ -82,7 +82,7 @@ pre {
 
 header {
 	position: relative;
-	word-break: break-all;
+	word-break: keep-all;
 	margin-top: 5px;
 	margin-bottom: 10px;
 	text-align: left;
@@ -126,30 +126,28 @@ header div.title:hover {
 /*  nav */
 
 nav {
-    display: block;
+	display: flex;
+	flex-wrap: wrap;
 	font-family: 'Bungee', cursive;
 	margin-bottom: 10px;
 	border-top: 1px solid #ffffff;
 	border-bottom: 1px solid #ffffff;
 	font-size: 18px;
 	cursor: pointer;
+	text-align: center;
+	align-content: center;
 }
 
 nav a {
-	display: inline-block;
+	flex-grow: 1;
 	color: #ffffff;
 	line-height: normal!important;
 	text-decoration: none!important;
-	padding: 2px 5px 2px 5px!important;
 }
 
 nav a:hover {
 	color: #000000;
 	background-color: #fff;
-}
-
-nav div.social {
-	display: inline-block;
 }
 
 nav div.social a {
@@ -160,7 +158,6 @@ nav div.social a {
 	transition: all .6s ease;
 }
 
-nav div.social {
-	position: absolute;
-	right: 0;
+nav div.social a i {
+	padding: 10px;
 }
