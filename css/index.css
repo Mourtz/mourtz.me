@@ -141,21 +141,14 @@ nav {
 nav a {
 	flex-grow: 1;
 	color: #ffffff;
-	line-height: normal!important;
 	text-decoration: none!important;
+	transition: all 1.3s ease;
 }
 
 nav a:hover {
 	color: #000000;
 	background-color: #fff;
-}
-
-nav div.social a {
-	-webkit-transition: all .6s ease;
-	-moz-transition: all .6s ease;
-	-ms-transition: all .6s ease;
-	-o-transition: all .6s ease;
-	transition: all .6s ease;
+	transition:none;
 }
 
 nav div.social a i {
