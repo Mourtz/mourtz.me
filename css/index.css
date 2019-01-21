@@ -127,18 +127,18 @@ header div.title:hover {
 
 nav {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	font-family: 'Bungee', cursive;
 	margin-bottom: 10px;
 	border-top: 1px solid #ffffff;
 	border-bottom: 1px solid #ffffff;
-	font-size: 18px;
+	font-size: 22px;
 	cursor: pointer;
-	text-align: center;
-	align-content: center;
+	align-items: center;
 }
 
 nav a {
+	text-align: center;
 	flex-grow: 1;
 	color: #ffffff;
 	text-decoration: none!important;
@@ -151,6 +151,11 @@ nav a:hover {
 	transition:none;
 }
 
+nav div.social {
+	display: flex;
+	flex-wrap: nowrap;
+}
+
 nav div.social a i {
-	padding: 10px;
+	padding: 0px 10px 0px 10px;
 }
