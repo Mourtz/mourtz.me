@@ -1,6 +1,5 @@
 /*  global  */
 
-@import 'https://fonts.googleapis.com/css?family=Bungee|Work+Sans';
 @font-face {
 	font-family: Assassin;
 	src: url("../fonts/Assassin$.ttf");
@@ -108,7 +107,7 @@ header div.surname {
 }
 
 header div.title {
-	cursor: crosshair;
+	/* cursor: crosshair; */
 	display: table-cell;
 	color: #959595;
 	font-size: 28px;
@@ -128,7 +127,8 @@ header div.title:hover {
 nav {
 	display: flex;
 	flex-wrap: nowrap;
-	font-family: 'Bungee', cursive;
+	font-family: "Times New Roman", Times, serif;
+	font-style: oblique;
 	margin-bottom: 10px;
 	border-top: 1px solid #ffffff;
 	border-bottom: 1px solid #ffffff;

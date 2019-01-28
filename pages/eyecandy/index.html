@@ -97,8 +97,8 @@
   <!-- jQuery Easing -->
   <script src="../../lib/jquery.easing.min.js"></script>
 
-  <!-- GLSL canvas -->
-  <script src="../../js/GlslViewport.js"></script>
+  <!-- nWGL -->
+  <script src="../../external/nWGL/nWGL.js"></script>
 
   <!--  marked js  -->
   <script src="../../lib/marked.min.js"></script>
@@ -107,50 +107,55 @@
   <script src="../../js/index.js"></script>
 
   <script>
-    var w = Math.floor(document.body.offsetWidth / 1.5);
+    if(!window.mobilecheck()){
+      $("#pt").toggle();
+      
+      const w = Math.floor(document.body.offsetWidth / 1.5);
+      let sandbox = new nWGL.main({ "width": w, "height": w, "el": document.getElementById('pt-wrapper') });
 
-    window.onload = function () {
-      load_all_GlslCanvas();
-    };
+      //------------------------- Framebuffers -------------------------
+      let fb = sandbox.addFrameBuffer({ "internalformat": "RGBA32F" }, "backbuffer");
 
-    var billboards = [];
+      //------------------------- Textures -------------------------
+      let tex = sandbox.addTexture({ "internalformat": "RGBA32F" }, "tex0");
 
-    function load_all_GlslCanvas(id) {
-      let sandbox = null;
+      //------------------------- Shaders -------------------------
+      let vertex_shader = sandbox.addShader("../../shaders/vert.glsl", true, "vertex_shader");
+      let frag_shader = sandbox.addShader("../../shaders/shader4.glsl", false, "pt_shader");
+      let display_shader = sandbox.addShader("../../shaders/display.glsl", false, "display_shader");
 
-//      sandbox = new GlslViewport(null, {
-//        fragmentString: fetchHTTP("../../shaders/shader2.glsl"),
-//        width: w,
-//        height: 120
-//      });
-//      document.getElementById('PacMan-wrapper').appendChild(sandbox.canvas);
-//      billboards.push(sandbox);
+      //------------------------- RayTracing Program -------------------------
+      sandbox.addProgram([ "vertex_shader", "pt_shader" ], "raytracing");
+    
+      sandbox.programs["raytracing"].addUniform("u_backbuffer", "1i", 0);
+      //------------------------- Display Program -------------------------
+      sandbox.addProgram([ "vertex_shader","display_shader" ], "display" );
+        
+      sandbox.programs["display"].addUniform("u_tex", "1i", 1);
 
-      if (!window.mobilecheck()) {
-        sandbox = new GlslViewport(null, {
-          fragmentString: fetchHTTP("../../shaders/shader4.glsl"),
-          width: w,
-          height: w,
-          max_passes: 8,
-          preserveDrawingBuffer: true
-        });
-        document.getElementById('pt-wrapper').appendChild(sandbox.canvas);
-        sandbox.canvas.onclick = function () {
-          sandbox.render();
-        };
-        billboards.push(sandbox)
-        $("#pt").toggle();
-        sandbox.canvas.click();
-      }
+      //------------------------- Render Loop -------------------------
+      function render() {
+        sandbox.m_draw([
+          function(){
+            sandbox.program = "raytracing";
+            sandbox.setTexture("u_backbuffer", sandbox.textures["tex0"].tex, 0);
+            sandbox.bindFramebuffer(fb.fb);
+            fb.setTexture(0, fb.t0);
+          },
+          function(){
+            sandbox.program = "display";
+            sandbox.setTexture("u_tex", fb.t0, 1);
+            sandbox.bindFramebuffer(null);
+          }
+        ]);
+        // texture ping pong
+        sandbox.textures["tex0"].swap(fb.textures[0])
+      };
 
-//			sandbox = new GlslViewport(null, {
-//        fragmentString: fetchHTTP("../../shaders/shader5.glsl"),
-//        width: w,
-//        height: 120
-//      });
-//      document.getElementById('Parallax-wrapper').appendChild(sandbox.canvas);
-//      billboards.push(sandbox);
-
+      render();
+      sandbox.canvas.onclick = function () {
+        render();
+      };
     }
   </script>
 

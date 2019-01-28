@@ -1,6 +1,8 @@
-#ifdef GL_ES
-  precision mediump float;
-#endif
+#version 300 es
+
+precision highp float;
+
+layout(location = 0) out highp vec4 FragColor;
 
 uniform sampler2D u_backbuffer;
 uniform float u_time;
@@ -8,7 +10,7 @@ uniform vec2 u_resolution;
 uniform int u_keyboard;
 uniform int u_frame;
 
-#define SAMPLES 18
+#define SAMPLES 2	
 #define MAXDEPTH 8
 #define NUM_SPHERES 13
 
@@ -37,23 +39,21 @@ const struct Sphere {
 	float f;
 };
 
-Sphere spheres[NUM_SPHERES];
-
-void SetupScene(){   
-  spheres[0] = Sphere(15.0, vec3(30.0, 15.0, 30.0), vec3(0.0), vec3(1.0), SPEC, 0.0);
-  spheres[1] = Sphere(15.0, vec3(30.0, 15.0, 70.0), vec3(0.0), vec3(1.0), SPEC, 0.0); 
-  spheres[2] = Sphere(15.0, vec3(70.0, 15.0, 70.0), vec3(0.0), vec3(1.0), SPEC, 0.1);
-  spheres[3] = Sphere(15.0, vec3(70.0, 15.0, 30.0), vec3(0.0), vec3(1.0), SPEC, 0.0); 
-  spheres[4] = Sphere(200., vec3(50., 281.33, 50.),	vec3(12.), vec3(0.), DIFF, 0.0);
-  spheres[5] = Sphere(1e5, vec3(-1e5+1., 40.8, 81.6),	vec3(0.), vec3(1.0, 0.0, 0.0), DIFF, 0.0);
-  spheres[6] = Sphere(1e5, vec3( 1e5+99., 40.8, 81.6),	vec3(0.), vec3(0.0, 1.0, 0.0), DIFF, 0.0);
-  spheres[7] = Sphere(1e5, vec3(50., 40.8, -1e5),		vec3(0.), vec3(1.0), DIFF, 0.0);
-  spheres[8] = Sphere(1e5, vec3(50., 40.8,  1e5+170.),	vec3(0.), vec3(1.0), DIFF, 0.0);
-  spheres[9] = Sphere(1e5, vec3(50., -1e5, 81.6),		vec3(0.), vec3(1.0), DIFF, 0.0);
-  spheres[10] = Sphere(1e5, vec3(50.,  1e5+81.6, 81.6),	vec3(0.), vec3(1.0), DIFF, 0.0);
-  spheres[11] = Sphere(20.0, vec3(50., 35.0, 50.0), vec3(0.), vec3(0.0,0.7,1.0), REFR, 0.0);
-  spheres[12] = Sphere(19.9, vec3(50., 35.0, 50.0), vec3(0.), vec3(1.0), REFR, 0.0);
-}
+const Sphere spheres[NUM_SPHERES] = Sphere[](
+	Sphere(15.0, vec3(30.0, 15.0, 30.0), vec3(0.0), vec3(1.0), SPEC, 0.0),
+	Sphere(15.0, vec3(30.0, 15.0, 70.0), vec3(0.0), vec3(1.0), SPEC, 0.0), 
+	Sphere(15.0, vec3(70.0, 15.0, 70.0), vec3(0.0), vec3(1.0), SPEC, 0.1),
+	Sphere(15.0, vec3(70.0, 15.0, 30.0), vec3(0.0), vec3(1.0), SPEC, 0.0),
+	Sphere(200., vec3(50., 281.33, 50.),	vec3(12.), vec3(0.), DIFF, 0.0),
+	Sphere(1e5, vec3(-1e5+1., 40.8, 81.6),	vec3(0.), vec3(1.0, 0.0, 0.0), DIFF, 0.0),
+	Sphere(1e5, vec3( 1e5+99., 40.8, 81.6),	vec3(0.), vec3(0.0, 1.0, 0.0), DIFF, 0.0),
+	Sphere(1e5, vec3(50., 40.8, -1e5),		vec3(0.), vec3(1.0), DIFF, 0.0),
+	Sphere(1e5, vec3(50., 40.8,  1e5+170.),	vec3(0.), vec3(1.0), DIFF, 0.0),
+	Sphere(1e5, vec3(50., -1e5, 81.6),		vec3(0.), vec3(1.0), DIFF, 0.0),
+	Sphere(1e5, vec3(50.,  1e5+81.6, 81.6),	vec3(0.), vec3(1.0), DIFF, 0.0),
+	Sphere(20.0, vec3(50., 35.0, 50.0), vec3(0.), vec3(0.0,0.7,1.0), REFR, 0.0),
+	Sphere(19.9, vec3(50., 35.0, 50.0), vec3(0.), vec3(1.0), REFR, 0.0)
+);
 
 float intersect(Sphere s, Ray r) {
 	vec3 op = s.p - r.o;
@@ -140,9 +140,8 @@ vec3 radiance(Ray r) {
 }
 
 void main(void) {
-	vec4 previous = texture2D(u_backbuffer, gl_FragCoord.xy / u_resolution.xy);
+	vec4 previous = texture(u_backbuffer, gl_FragCoord.xy / u_resolution.xy);
 	seed = u_time + u_resolution.y * gl_FragCoord.x / u_resolution.x + gl_FragCoord.y / u_resolution.y;
-	SetupScene();
 	vec2 uv = 2. * gl_FragCoord.xy / u_resolution.xy - 1.;
 	vec3 camPos = vec3(50., 40.8, 169.);
 	vec3 cz = normalize(vec3(50., 40., 81.6) - camPos);
@@ -154,5 +153,5 @@ void main(void) {
 	float weight = clamp(255. * previous.a, 0., 254.);
 	float gamma = 2.2;
 	color = (color / float(SAMPLES) + pow(previous.rgb, vec3(gamma)) * weight) / (1. + weight);
-	gl_FragColor = vec4(pow(clamp(color, 0., 1.), vec3(1./gamma)), (weight + 1.)/255.);
+	FragColor = vec4(pow(clamp(color, 0., 1.), vec3(1./gamma)), (weight + 1.)/255.);
 }
