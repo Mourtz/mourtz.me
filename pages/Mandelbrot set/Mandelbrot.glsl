@@ -22,15 +22,15 @@ void main( void ) {
 	// Mandelbrot loop.
 	vec2 z = vec2(0.0);
 	for (int i = 0; i < MAX_ITERATIONS ; i++) {
-		// The famous Mandelbrot equation (z = z^2+c)
+		// z -> z^2+c
 		z = vec2(z.x*z.x - z.y*z.y, 2.*z.x*z.y) + c;
 
 		// break if point becomes greater than 2.0
 		if (length(z) > MAX_DISTANCE) break;
 
-		shade+=max(abs(sin(u_time*5e-1))*3., 0.1);
+		++shade;
 	}
 
-	shade = 2e-2*(shade - log2(log2(dot(z,z))));
+	shade = 2e-2*(shade - log2(dot(z,z)));
 	gl_FragColor = vec4(vec3(shade), 1.0);
 }
