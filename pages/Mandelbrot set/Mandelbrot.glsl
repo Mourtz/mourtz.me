@@ -14,7 +14,7 @@ void main( void ) {
 	vec2 uv = gl_FragCoord.xy / u_resolution;
     uv *= zoom;
 
-	// Calculate starting values for Mandelbrot set for the pixel
+	// Calculate starting values for Mandelbrot set for the pixel (complex plane)
 	vec2 c = vec2(-zoom/2.0 - 1.0,-zoom/2.0) + uv;
 
     float shade = 0.0;
