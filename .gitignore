@@ -1,3 +1,4 @@
 /pages/articles/
 *.out
 /pages/ray-marching/
+procedural_geometry/
