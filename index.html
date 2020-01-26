@@ -32,8 +32,8 @@
     font-family: monospace;
   }
 
-  content h2{
-    color:#30e030;
+  content h2 {
+    color: #30e030;
     text-indent: 20px;
   }
 
@@ -88,7 +88,7 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   project {
     position: relative;
     text-align: center;
@@ -97,12 +97,12 @@
     max-width: 50%;
     padding: 0;
   }
-  
-  project a{
+
+  project a {
     color: white;
   }
 
-  project hint{
+  project hint {
     font-size: 28px;
     font-family: Georgia, 'Times New Roman', Times, serif;
     /* color: limegreen; */
@@ -127,6 +127,30 @@
   project:hover hint {
     visibility: visible;
   }
+
+  /* Responsive layout - makes a two column-layout instead of four columns */
+  @media screen and (max-width: 800px) {
+    project {
+      flex: 50%;
+      max-width: 50%;
+    }
+
+    project img {
+      filter: grayscale(0%);
+    }
+
+    project hint {
+      visibility: visible;
+    }
+  }
+
+  /* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
+  @media screen and (max-width: 600px) {
+    project {
+      flex: 100%;
+      max-width: 100%;
+    }
+  }
 </style>
 
 <body>
@@ -146,45 +170,51 @@
     <projects>
       <project>
         <a href="https://github.com/Mourtz/Photorealistic-Rendering-using-OpenCL" target="_blank"><img
-          src="img/BSc_thesis.png">
+            src="img/BSc_thesis.png">
           <hint>
             BSc thesis
           </hint>
         </a>
-      </project>      
+      </project>
       <project>
-        <a href="https://github.com/cms-sw/cmssw" target="_blank"><img src="img/hgcal.png">
+        <a href="https://github.com/cms-sw/cmssw/commits?author=Mourtz" target="_blank"><img src="img/hgcal.png">
           <hint>
             HGCal
           </hint>
         </a>
       </project>
       <project>
-        <a href="https://mourtz.github.io/nWGL-examples/obj-viewer/index.html" target="_blank"><img src="img/obj-viewer.gif">
+        <a href="https://mourtz.github.io/nWGL-examples/obj-viewer/index.html" target="_blank"><img
+            src="img/obj-viewer.gif">
           <hint style="color: black; font-weight: bold;">
             nWGL
           </hint>
         </a>
       </project>
       <project>
-        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');" href="https://mourtz.github.io/flattened-smallpt/index?scene=subsurface" target="_blank"><img src="img/SS_experiment0.png">
+        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');"
+          href="https://mourtz.github.io/flattened-smallpt/index?scene=subsurface" target="_blank"><img
+            src="img/SS_experiment0.png">
           <hint style="color: black; font-weight: bold;">
             nWGL
           </hint>
         </a>
       </project>
       <project>
-        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');" href="https://mourtz.github.io/flattened-smallpt/index" target="_blank"><img src="img/flattened-smallpt.gif">
+        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');"
+          href="https://mourtz.github.io/flattened-smallpt/index" target="_blank"><img src="img/flattened-smallpt.gif">
           <hint style="font-weight: bold;">
             nWGL
           </hint>
         </a>
       </project>
       <project>
-        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');" href="https://mourtz.github.io/flattened-smallpt/index?scene=volume" target="_blank"><img src="img/medium0.png">
+        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');"
+          href="https://mourtz.github.io/flattened-smallpt/index?scene=volume" target="_blank"><img
+            src="img/medium0.png">
           <hint style=" font-weight: bold;">
             nWGL
-          </hint> 
+          </hint>
         </a>
       </project>
       <project>
@@ -202,7 +232,8 @@
         </a>
       </project>
       <project>
-        <a href="https://play.google.com/store/apps/details?id=com.ShunlessStudio.Nitrocity" target="_blank"><img src="img/nitrocity.webp">
+        <a href="https://play.google.com/store/apps/details?id=com.ShunlessStudio.Nitrocity" target="_blank"><img
+            src="img/nitrocity.webp">
           <hint style="color: mintcream;">
             Racing Game made with <b>Unity</b>
           </hint>
