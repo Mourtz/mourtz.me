@@ -134,7 +134,8 @@ nav {
 	border-bottom: 1px solid #ffffff;
 	font-size: 22px;
 	cursor: pointer;
-	align-items: center;
+	align-items: flex-end;
+    justify-content: flex-end;
 }
 
 nav a {

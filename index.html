@@ -2,15 +2,21 @@
 <html lang="en">
 
 <head>
-  <title>Alex &#183; Mourtziapis</title>
+  <title>Projects of Alex Mourtziapis</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-  <link rel="icon" href="./favicon.jpg" type="img/portfolio/x-icon">
-  <link rel="shortcut icon" href="./favicon.jpg" type="img/portfolio/x-icon">
+  <link rel="icon" href="favicon.jpg" type="img/portfolio/x-icon">
+  <link rel="shortcut icon" href="favicon.jpg" type="img/portfolio/x-icon">
 
-  <meta name="keywords" content="Mourtz, Alex, computer graphics, gamedev, 3D, shader, rendering, realtime" />
-  <meta name="description" content="Repository of productions, tutorials and articles of Alex Mourtziapis on computer graphics, gamedev and more." />
+  <meta name="keywords" content="Mourtziapis, Alex, gamedev, creative, connection, shunless" />
+  <meta name="description" content="Projects of Alex Mourtziapis." />
   <meta name="author" content="Alex Mourtziapis" />
+
+  <!--  Font Awesome  -->
+  <link href="lib/css/font-awesome.min.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/index.css">
 
   <header>
     <div class="name">Alex</div>
@@ -18,86 +24,199 @@
     <div class="title">Software Developer</div>
   </header>
 
-  <!--  Font Awesome  -->
-  <link href="../../lib/css/font-awesome.min.css" rel="stylesheet">
-
-  <link rel="stylesheet" href="css/index.css">
-  <link rel="stylesheet" href="css/blog.css">
-
-  <!--    <script src="lib/less.min.js"></script>-->
-
 </head>
+
+<style>
+  content {
+    font-size: 14px;
+    font-family: monospace;
+  }
+
+  content h2{
+    color:#30e030;
+    text-indent: 20px;
+  }
+
+  content ul {
+    list-style: none;
+  }
+
+  content li a#title {
+    margin-top: 10px;
+    font-size: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    color: #30e030;
+  }
+
+  content li p {
+    margin: 5px 0px;
+    margin-left: 2%;
+  }
+
+  @keyframes type {
+    from {
+      width: 0;
+    }
+  }
+
+  @keyframes blink {
+    to {
+      opacity: 0;
+    }
+  }
+
+  #category {
+    display: block;
+    font-size: 20px;
+    color: white;
+    margin: 10px 0 10px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 30em;
+    animation: type 4s steps(60, end);
+  }
+
+  #category span {
+    animation: blink 1s infinite;
+  }
+
+  projects {
+    margin: 1% 5% 0% 5%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  project {
+    position: relative;
+    text-align: center;
+    font-family: 'Work Sans', sans-serif;
+    flex: 33%;
+    max-width: 50%;
+    padding: 0;
+  }
+  
+  project a{
+    color: white;
+  }
+
+  project hint{
+    font-size: 28px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    /* color: limegreen; */
+    visibility: hidden;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  project img {
+    filter: grayscale(95%);
+    vertical-align: middle;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  project:hover img {
+    filter: grayscale(0%);
+  }
+
+  project:hover hint {
+    visibility: visible;
+  }
+</style>
 
 <body>
   <nav>
-    <a href="pages/projects/">Projects</a>
-    <a>Blog</a>
-    <!-- <a href="pages/eyecandy/">Eye Candy</a> -->
-    <a href="mailto:alex.mourtziapis@gmail.com">Contact</a>
-
     <div class="social">
       <a href="https://github.com/Mourtz" target="_blank"><i class="fa fa-github"></i></a>
       <a href="https://twitter.com/mourtz_alex" target="_blank"><i class="fa fa-twitter"></i></a>
-      <!-- <a href="https://www.linkedin.com/in/mourtz" target="_blank"><i class="fa fa-linkedin"></i></a> -->
-      <a href="http://stackoverflow.com/users/4205263/alex-mourtziapis" target="_blank"><i class="fa fa-stack-overflow"></i></a>
+      <a href="https://www.linkedin.com/in/a-mourtziapis/" target="_blank"><i class="fa fa-linkedin"></i></a>
+      <a href="http://stackoverflow.com/users/4205263/alex-mourtziapis" target="_blank"><i
+          class="fa fa-stack-overflow"></i></a>
     </div>
   </nav>
 
-  <content>
-    <div class="category"> Graphics Programming</div>
-    <ul>
-      <!--
-            <li>
-                <div class="date">09.07.2016</div>
-                <div class="title"><a href="pages/tearable-cloth/"> Tearable Cloth Simulation</a></div>
-            </li>
--->
+  <content id="content-wrapper">
 
-      <!--
-            <li>
-                <div class="date">07.06.2016</div>
-                <div class="title"><a href="pages/waving-flag/"> Simple waving effect in GLSL</a></div>
-            </li>
- --->
-
-      <li>
-        <div class="date">28.02.2016</div>
-        <div class="title"><a href="pages/gl_benchmarking/"> GL Benchmark</a></div>
-      </li>
-
-      <li>
-        <div class="date">23.09.2015</div>
-        <div class="title"><a href="pages/Mandelbrot%20set/"> Mandelbrot set</a></div>
-      </li>
-
-      <li>
-        <div class="date">03.09.2015</div>
-        <div class="title"><a href="pages/post-processing/"> Post Processing</a></div>
-      </li>
-
-    </ul>
-
-    <div class="category"> Reverse Engineering</div>
-    <ul>
-      <li>
-        <div class="date">04.10.2015</div>
-        <div class="title"><a href="pages/GDB-RE/"> Basic Reverse Engineering with GDB</a></div>
-      </li>
-    </ul>
-
-    <div class="category"> Tricks</div>
-    <ul>
-      <li>
-        <div class="date">08.01.2016</div>
-        <div class="title"><a href="pages/cpp-tricks/const/"> Intricate const</a></div>
-      </li>
-    </ul>
+    <p id="category">Portfolio<span>|</span></p>
+    <projects>
+      <project>
+        <a href="https://github.com/Mourtz/Photorealistic-Rendering-using-OpenCL" target="_blank"><img
+          src="img/BSc_thesis.png">
+          <hint>
+            BSc thesis
+          </hint>
+        </a>
+      </project>      
+      <project>
+        <a href="https://github.com/cms-sw/cmssw" target="_blank"><img src="img/hgcal.png">
+          <hint>
+            HGCal
+          </hint>
+        </a>
+      </project>
+      <project>
+        <a href="https://mourtz.github.io/nWGL-examples/obj-viewer/index.html" target="_blank"><img src="img/obj-viewer.gif">
+          <hint style="color: black; font-weight: bold;">
+            nWGL
+          </hint>
+        </a>
+      </project>
+      <project>
+        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');" href="https://mourtz.github.io/flattened-smallpt/index?scene=subsurface" target="_blank"><img src="img/SS_experiment0.png">
+          <hint style="color: black; font-weight: bold;">
+            nWGL
+          </hint>
+        </a>
+      </project>
+      <project>
+        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');" href="https://mourtz.github.io/flattened-smallpt/index" target="_blank"><img src="img/flattened-smallpt.gif">
+          <hint style="font-weight: bold;">
+            nWGL
+          </hint>
+        </a>
+      </project>
+      <project>
+        <a onclick="alert('WebGL2 draft extensions have to be enabled for this demo!');" href="https://mourtz.github.io/flattened-smallpt/index?scene=volume" target="_blank"><img src="img/medium0.png">
+          <hint style=" font-weight: bold;">
+            nWGL
+          </hint> 
+        </a>
+      </project>
+      <project>
+        <a href="https://github.com/Mourtz/raytracer-0" target="_blank"><img src="img/raytracer.png">
+          <hint>
+            WebGL raytracer
+          </hint>
+        </a>
+      </project>
+      <project>
+        <a href="https://github.com/Shunless/SkipStack/tree/dev" target="_blank"><img src="img/skipstack.png">
+          <hint style="color: salmon; font-weight: bold;">
+            Puzzle Game made with <b>Phaser.js</b>
+          </hint>
+        </a>
+      </project>
+      <project>
+        <a href="https://play.google.com/store/apps/details?id=com.ShunlessStudio.Nitrocity" target="_blank"><img src="img/nitrocity.webp">
+          <hint style="color: mintcream;">
+            Racing Game made with <b>Unity</b>
+          </hint>
+        </a>
+      </project>
+    </projects>
   </content>
+
+  <br><br><br><br>
 
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-66672624-1"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'UA-66672624-1');
