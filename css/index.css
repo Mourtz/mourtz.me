@@ -141,7 +141,7 @@ nav {
 nav a {
 	padding: 5px 10px 5px 10px;
 	text-align: center;
-	flex-grow: 1;
+	flex-grow: 2;
 	color: #ffffff;
 	text-decoration: none!important;
 	transition: all 1.3s ease;
@@ -155,5 +155,6 @@ nav a:hover {
 
 nav div.social {
 	display: flex;
+	flex-grow: 1;
 	flex-wrap: nowrap;
 }
