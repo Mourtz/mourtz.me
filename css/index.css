@@ -139,6 +139,7 @@ nav {
 }
 
 nav a {
+	padding: 5px 10px 5px 10px;
 	text-align: center;
 	flex-grow: 1;
 	color: #ffffff;
@@ -155,8 +156,4 @@ nav a:hover {
 nav div.social {
 	display: flex;
 	flex-wrap: nowrap;
-}
-
-nav div.social a i {
-	padding: 0px 10px 0px 10px;
 }
