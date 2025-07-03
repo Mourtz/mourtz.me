@@ -106,11 +106,13 @@
     font-size: 28px;
     font-family: Georgia, 'Times New Roman', Times, serif;
     /* color: limegreen; */
-    visibility: hidden;
+    visibility: visible;
+    opacity: 0.3;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    transition: opacity 0.2s ease-in-out;
   }
 
   project img {
@@ -126,7 +128,31 @@
   }
 
   project:hover hint {
-    visibility: visible;
+    opacity: 1;
+  }
+
+  project.broken-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  project.broken-link img {
+    filter: grayscale(100%);
+    cursor: not-allowed;
+  }
+
+  project.broken-link:hover img {
+    filter: grayscale(100%);
+  }
+
+  project.broken-link hint {
+    opacity: 1;
+    cursor: not-allowed;
+    color: #ff6b6b;
+  }
+
+  project.broken-link:hover hint {
+    opacity: 1;
   }
 
   /* Responsive layout - makes a two column-layout instead of four columns */
@@ -164,7 +190,7 @@
 
     project hint {
       font-size: 38px;
-      visibility: visible;
+      opacity: 1;
     }
 
     nav a {
@@ -207,7 +233,7 @@
           </hint>
         </a>
       </project>
-      <project>
+      <project class="broken-link">
         <a title="Physics puzzle game made with Unity" href="https://play.google.com/store/apps/details?id=com.ShunlessStudio.DoodlyPhysX" target="_blank"><img
             src="img/doodle-physics.png">
           <hint>
@@ -300,6 +326,77 @@
     }
     
     let isMobile = window.mobilecheck();
+
+    // Function to check if a URL is accessible with timeout
+    async function checkLink(url) {
+      try {
+        // Skip mailto links and onclick handlers
+        if (url.startsWith('mailto:') || !url.startsWith('http')) {
+          return true;
+        }
+        
+        // Create a promise that rejects after timeout
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Timeout')), 1000); // 1 second timeout
+        });
+        
+        // Create the fetch promise
+        const fetchPromise = fetch(url, { 
+          method: 'HEAD',
+          mode: 'no-cors',
+          cache: 'no-cache'
+        });
+        
+        // Race between fetch and timeout
+        await Promise.race([fetchPromise, timeoutPromise]);
+        return true; // If we get here, the link is accessible
+      } catch (error) {
+        return false; // Link is broken or inaccessible
+      }
+    }
+
+    // Function to check all project links in parallel
+    async function checkProjectLinks() {
+      const projects = document.querySelectorAll('project');
+      
+      // Create array of promises for parallel execution
+      const linkChecks = Array.from(projects).map(async (project) => {
+
+        const link = project.querySelector('a');
+
+        // Skip already marked projects
+        if (project.classList.contains('broken-link')) {
+                        link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+              });
+          return; // Skip already marked projects
+        }
+
+        if (link) {
+          const href = link.getAttribute('href');
+          if (href && !link.getAttribute('onclick')) {
+            const isWorking = await checkLink(href);
+            if (!isWorking) {
+              project.classList.add('broken-link');
+              // Disable the link
+              link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+              });
+            }
+          }
+        }
+      });
+      
+      // Wait for all checks to complete
+      await Promise.all(linkChecks);
+    }
+
+    // Run link checking when the page loads
+    window.addEventListener('load', function() {
+      checkProjectLinks();
+    });
 
     function onLinkClick(index) {
       if (isMobile) { // mobile devices & ~laptops
