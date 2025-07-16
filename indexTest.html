@@ -59,9 +59,14 @@
 
   /* Animated geometric background */
   #cyberpunk-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: -1;
+    pointer-events: none;
     background: transparent;
-    /* pointer-events enabled for touch */
   }
 
   header {
@@ -369,7 +374,7 @@
 
 <body>
   <!-- Add animated cyberpunk background -->
-  <canvas id="cyberpunk-bg"></canvas>
+  <canvas id="cyberpunk-bg" tabindex="-1" aria-hidden="true" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background:transparent;"></canvas>
   <nav>
     <a>Resume</a>
     <a href="mailto:alex.mourtziapis@gmail.com" target="_blank">Contact</a>
@@ -625,47 +630,25 @@
     // Cyberpunk animated geometric pattern
     const canvas = document.getElementById('cyberpunk-bg');
     const ctx = canvas.getContext('2d');
-    function setCanvasDesktop() {
-      canvas.style.position = 'fixed';
-      canvas.style.top = '0';
-      canvas.style.left = '0';
-      canvas.style.width = '100vw';
-      canvas.style.height = '100vh';
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+
+    function setCanvasSize() {
+      // Use devicePixelRatio for crispness
+      const dpr = window.devicePixelRatio || 1;
       w = window.innerWidth;
       h = window.innerHeight;
-      canvas.width = w;
-      canvas.height = h;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+      ctx.scale(dpr, dpr);
     }
-
-    function setCanvasMobile() {
-      canvas.style.position = 'absolute';
-      canvas.style.top = '0';
-      canvas.style.left = '0';
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-      canvas.style.minHeight = '100vh';
-      w = Math.max(window.innerWidth, document.body.scrollWidth);
-      h = Math.max(window.innerHeight, document.body.scrollHeight);
-      canvas.width = w;
-      canvas.height = h;
-    }
-
-    function resizeCanvas() {
-      if (isMobile) {
-        setCanvasMobile();
-      } else {
-        setCanvasDesktop();
-      }
-    }
-
-    // Initial setup
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    // On mobile, also update canvas size when DOM content changes (for dynamic page height)
-    if (isMobile) {
-      const resizeObserver = new MutationObserver(resizeCanvas);
-      resizeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
-    }
+    setCanvasSize();
+    window.addEventListener('resize', setCanvasSize);
+    // On orientation change (for mobile)
+    window.addEventListener('orientationchange', setCanvasSize);
 
     // Helper for animated triangles crossing edges
     function drawEdgeTriangle(edge, progress, color, size = 48) {
@@ -756,27 +739,34 @@
       }
     }
 
-    // Track hovered project index and positions (desktop) or touch position (mobile)
+    // Track hovered project index and positions
     let hoveredProjectIndex = null;
     let hoveredProjectIconPos = null;
-    let mobileTouchPos = null;
+    // Track touch position for mobile
+    let touchActive = false;
+    let touchPos = null;
 
     // Helper: get the center position of a project's image/icon (fixed for scroll)
     function getProjectIconCenter(project) {
       const img = project.querySelector('img');
       if (!img) return null;
       const rect = img.getBoundingClientRect();
+      // For fixed canvas, use viewport coordinates
       return {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2
       };
     }
 
+    // Attach hover listeners to projects
     window.addEventListener('DOMContentLoaded', () => {
       const projects = document.querySelectorAll('projects > project');
       projects.forEach((project, idx) => {
         project.addEventListener('mouseenter', () => {
           hoveredProjectIndex = idx;
+          hoveredProjectIconPos = getProjectIconCenter(project);
+        });
+        project.addEventListener('mousemove', () => {
           hoveredProjectIconPos = getProjectIconCenter(project);
         });
         project.addEventListener('mouseleave', () => {
@@ -785,24 +775,24 @@
         });
       });
 
-      // On mobile, track touch position on the canvas
-      if (isMobile) {
-        canvas.addEventListener('touchstart', function(e) {
-          if (e.touches && e.touches.length > 0) {
-            const touch = e.touches[0];
-            mobileTouchPos = { x: touch.clientX, y: touch.clientY };
-          }
-        });
-        canvas.addEventListener('touchmove', function(e) {
-          if (e.touches && e.touches.length > 0) {
-            const touch = e.touches[0];
-            mobileTouchPos = { x: touch.clientX, y: touch.clientY };
-          }
-        });
-        canvas.addEventListener('touchend', function(e) {
-          mobileTouchPos = null;
-        });
-      }
+      // Touch events for triangles (anywhere on screen)
+      document.body.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          touchActive = true;
+          touchPos = { x: t.clientX, y: t.clientY };
+        }
+      }, { passive: true });
+      document.body.addEventListener('touchmove', function(e) {
+        if (touchActive && e.touches.length > 0) {
+          const t = e.touches[0];
+          touchPos = { x: t.clientX, y: t.clientY };
+        }
+      }, { passive: true });
+      document.body.addEventListener('touchend', function(e) {
+        touchActive = false;
+        touchPos = null;
+      }, { passive: true });
     });
 
     // Triangle "flock" state
@@ -859,25 +849,23 @@
       return { x, y, angle };
     }
 
-    // Animate triangles towards target (icon/touch) or back to edge
+    // Animate triangles towards target (icon or touch) or back to edge
     function updateTriangles(target) {
-      let flockTarget = null;
-      if (isMobile && mobileTouchPos) {
-        flockTarget = mobileTouchPos;
-      } else {
-        flockTarget = target;
+      let useTarget = target;
+      if (touchActive && touchPos) {
+        useTarget = touchPos;
       }
       for (let i = 0; i < triangles.length; i++) {
         let tri = triangles[i];
         let size = 48;
         let edgePos = getEdgePosition(tri.edge, tri.progress, size);
 
-        // If hovering (desktop) or touching (mobile), move towards target with randomness
-        if (flockTarget) {
+        // If hovering or touch, move towards target with randomness
+        if (useTarget) {
           let jitterRadius = 40 + Math.random() * 40;
           let jitterAngle = Math.random() * Math.PI * 2;
-          let tx = flockTarget.x + Math.cos(jitterAngle) * jitterRadius;
-          let ty = flockTarget.y + Math.sin(jitterAngle) * jitterRadius;
+          let tx = useTarget.x + Math.cos(jitterAngle) * jitterRadius;
+          let ty = useTarget.y + Math.sin(jitterAngle) * jitterRadius;
           tri.x += (tx - tri.x) * (0.04 * tri.jitter);
           tri.y += (ty - tri.y) * (0.04 * tri.jitter);
           tri.angle += (0 - tri.angle) * 0.04;
@@ -958,7 +946,7 @@
           // Vertical lines: ultra-bright neon blue
           ctx.strokeStyle = 'rgba(0,255,255,0.95)';
           ctx.shadowColor = '#00fff7';
-          ctx.shadowBlur = 12; // reduced blur for perf
+          ctx.shadowBlur = 12;
           ctx.beginPath();
           ctx.moveTo(x + offset + tearX, y);
           ctx.lineTo(x + offset + tearX, y + gridSize);
@@ -1046,18 +1034,32 @@
 
     function animateCyberpunkBg(time) {
       drawCyberpunkPattern(time);
-      requestAnimationFrame(animateCyberpunkBg);
+      if (!isMobile) {
+        requestAnimationFrame(animateCyberpunkBg);
+      }
     }
-    animateCyberpunkBg(0);
 
-    // --- Screen tearing burst on .name and .surname hover ---
+    if (isMobile) {
+      let lastDraw = 0;
+      function mobileBgLoop(time) {
+        if (time - lastDraw > 100) { // ~10fps
+          drawCyberpunkPattern(time);
+          lastDraw = time;
+        }
+        requestAnimationFrame(mobileBgLoop);
+      }
+      mobileBgLoop(0);
+    } else {
+      animateCyberpunkBg(0);
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       const nameEl = document.querySelector('header .name');
       const surnameEl = document.querySelector('header .surname');
       [nameEl, surnameEl].forEach(el => {
         if (el) {
           el.addEventListener('mouseenter', () => {
-            tearingBurstTimer = 12; // ~0.2s burst at 60fps
+            tearingBurstTimer = 12;
           });
         }
       });
