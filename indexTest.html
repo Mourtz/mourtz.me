@@ -1041,13 +1041,24 @@
 
     if (isMobile) {
       let lastDraw = 0;
+      let scrolling = false;
+      let scrollTimeout = null;
+      let paused = false;
       function mobileBgLoop(time) {
-        if (time - lastDraw > 100) { // ~10fps
+        if (!paused && time - lastDraw > 50) { // ~20fps
           drawCyberpunkPattern(time);
           lastDraw = time;
         }
         requestAnimationFrame(mobileBgLoop);
       }
+      // Pause animation during scroll
+      window.addEventListener('scroll', function() {
+        paused = true;
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(function() {
+          paused = false;
+        }, 180); // Resume 180ms after scroll ends
+      }, { passive: true });
       mobileBgLoop(0);
     } else {
       animateCyberpunkBg(0);
