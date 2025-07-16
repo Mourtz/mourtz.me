@@ -17,6 +17,8 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/index.css">
+  <!-- Add Google Fonts for cyberpunk style -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <header>
     <div class="name">Alexandros</div>
@@ -27,14 +29,149 @@
 </head>
 
 <style>
+  /* Vibrant blue, white, and shades of gray palette */
+  :root {
+    --main-bg: #070812;
+    --main-bg-light: #1a1e2c;
+    --main-bg-dark: #01020a;
+    --main-blue: #00eaff;
+    --main-blue-light: #66fcff;
+    --main-blue-dark: #0099cc;
+    --main-white: #ffffff;
+    --main-gray: #d0e0ff;
+    --main-gray-dark: #7a8599;
+    --main-gray-light: #f0f6ff;
+    --card-bg: rgba(10, 12, 18, 0.99);
+    --card-border: #00eaff;
+    --card-shadow: 0 0 48px #00eaff, 0 0 60px #bfc6d1, 0 0 72px #232733;
+  }
+
+  body {
+    background: var(--main-bg);
+    color: var(--main-white);
+    font-family: 'Share Tech Mono', 'Orbitron', monospace;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Animated geometric background */
+  #cyberpunk-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    background: transparent;
+  }
+
+  header {
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    color: var(--main-blue);
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    text-shadow: 0 0 18px var(--main-blue-light), 0 0 32px var(--main-gray);
+    letter-spacing: 2px;
+  }
+
+  .name,
+  .surname {
+    font-size: 2.7em;
+    font-weight: bold;
+    display: inline-block;
+    margin: 0 10px;
+    color: var(--main-white);
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
+  }
+
+  .title {
+    font-size: 1.3em;
+    color: var(--main-blue-light);
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
+    margin-top: 10px;
+  }
+
+  nav {
+    background: linear-gradient(90deg, var(--main-bg-dark) 0%, var(--main-bg-light) 100%);
+    box-shadow: 0 0 24px var(--main-blue), 0 0 32px var(--main-gray);
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    border-bottom: 2px solid var(--main-blue);
+  }
+
+  nav a {
+    color: var(--main-white);
+    text-decoration: none;
+    font-size: 1.15em;
+    font-weight: bold;
+    margin: 0 10px;
+    transition:
+      color 0.2s,
+      background 0.3s,
+      box-shadow 0.3s,
+      border 0.3s;
+    text-shadow: 0 0 12px var(--main-blue), 0 0 24px var(--main-gray);
+    border-radius: 8px;
+    padding: 8px 18px;
+    border: 2px solid transparent;
+    background: transparent;
+    position: relative;
+    z-index: 1;
+  }
+
+  nav a:hover {
+    color: var(--main-blue-dark);
+    background: linear-gradient(90deg, var(--main-blue-light) 40%, var(--main-gray-light) 100%);
+    border: 2px solid var(--main-blue);
+    box-shadow: 0 0 24px var(--main-blue), 0 0 32px var(--main-gray);
+    text-shadow: 0 0 24px var(--main-blue), 0 0 32px var(--main-gray);
+    outline: none;
+  }
+
+  .social a {
+    color: var(--main-blue);
+    margin: 0 5px;
+    font-size: 1.7em;
+    text-shadow: 0 0 16px var(--main-blue), 0 0 24px var(--main-gray);
+    transition: color 0.2s, text-shadow 0.2s, transform 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+    padding: 4px;
+    background: transparent;
+    box-shadow: none;
+    display: inline-block;
+  }
+
+  .social a:hover {
+    color: var(--main-white);
+    text-shadow: 0 0 24px var(--main-blue-light), 0 0 32px var(--main-gray);
+    background: rgba(0, 170, 255, 0.12);
+    box-shadow: 0 0 18px var(--main-blue);
+    transform: scale(1.22);
+    outline: none;
+  }
+
   content {
-    font-size: 14px;
-    font-family: monospace;
+    font-size: 16px;
+    font-family: 'Share Tech Mono', 'Orbitron', monospace;
+    color: var(--main-gray-light);
+    margin-top: 30px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
   }
 
   content h2 {
-    color: #30e030;
+    color: var(--main-blue);
     text-indent: 20px;
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
   }
 
   content ul {
@@ -43,10 +180,11 @@
 
   content li a#title {
     margin-top: 10px;
-    font-size: 20px;
+    font-size: 22px;
     text-decoration: none;
     font-weight: bold;
-    color: #30e030;
+    color: var(--main-blue);
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
   }
 
   content li p {
@@ -54,77 +192,91 @@
     margin-left: 2%;
   }
 
-  @keyframes type {
-    from {
-      width: 0;
-    }
-  }
-
-  @keyframes blink {
-    to {
-      opacity: 0;
-    }
-  }
-
   #category {
     display: block;
-    font-size: 20px;
-    color: white;
+    font-size: 2.2em;
+    color: var(--main-blue);
     margin: 10px 0 10px 0;
     white-space: nowrap;
     overflow: hidden;
     width: 30em;
     animation: type 4s steps(60, end);
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
   }
 
   #category span {
     animation: blink 1s infinite;
+    color: var(--main-white);
+    text-shadow: 0 0 18px var(--main-blue-light), 0 0 32px var(--main-gray);
   }
 
   projects {
-    margin: 1% 5% 0% 5%;
+    margin: 2% 5% 0% 5%;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    gap: 30px;
   }
 
   project {
     position: relative;
     text-align: center;
-    font-family: 'Work Sans', sans-serif;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
     flex: 33%;
-    max-width: 50%;
+    max-width: 45%;
     padding: 0;
+    margin-bottom: 30px;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 18px;
+    box-shadow: var(--card-shadow);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    overflow: hidden;
   }
 
   project a {
-    color: white;
+    color: var(--main-white);
+    text-shadow: 0 0 18px var(--main-blue), 0 0 32px var(--main-gray);
   }
 
   project hint {
-    font-size: 28px;
-    font-family: Georgia, 'Times New Roman', Times, serif;
-    /* color: limegreen; */
+    font-size: 32px;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    color: #00eaff;
     visibility: visible;
-    opacity: 0.3;
+    opacity: 0.4;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+    background: rgba(10, 12, 18, 0.6);
+    padding: 6px 18px;
+    border-radius: 10px;
+    border: 2px solid #00eaff;
+    font-weight: bold;
+    z-index: 2;
   }
 
   project img {
-    filter: grayscale(95%);
+    filter: grayscale(40%) brightness(1.2) contrast(1.2) drop-shadow(0 0 18px var(--main-blue));
+    border: 2px solid var(--main-blue);
+    box-shadow: 0 0 24px var(--main-blue), 0 0 32px var(--main-gray);
     transition: all 0.2s ease-in-out;
     vertical-align: middle;
     width: 100%;
     cursor: pointer;
+    border-radius: 12px;
   }
 
   project:hover img {
-    filter: grayscale(0%);
+    filter: grayscale(0%) brightness(1.4) contrast(1.4) drop-shadow(0 0 32px var(--main-blue-light));
+    border-color: var(--main-blue-light);
+    box-shadow: 0 0 40px var(--main-blue-light), 0 0 48px var(--main-gray);
   }
 
   project:hover hint {
@@ -134,21 +286,25 @@
   project.broken-link {
     opacity: 0.5;
     cursor: not-allowed;
+    border-color: #7a8599;
+    box-shadow: 0 0 20px #7a8599;
   }
 
   project.broken-link img {
-    filter: blur(10px);
+    filter: blur(10px) grayscale(100%);
     cursor: not-allowed;
+    border-color: #7a8599;
   }
 
   project.broken-link:hover img {
-    filter: blur(2px);
+    filter: blur(2px) grayscale(100%);
   }
 
   project.broken-link hint {
     opacity: 1;
     cursor: not-allowed;
-    color: #ff6b6b;
+    color: #7a8599;
+    text-shadow: 0 0 20px #7a8599;
   }
 
   project.broken-link:hover hint {
@@ -160,21 +316,23 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 107, 107, 0.9);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
+    background: #ff0059;
+    color: #181a22;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 1.1em;
     font-weight: bold;
-    z-index: 10;
+    z-index: 20;
     pointer-events: none;
+    border: 2px solid #ff0059;
+    letter-spacing: 1px;
   }
 
   /* Responsive layout - makes a two column-layout instead of four columns */
   @media screen and (max-width: 800px) {
     project {
       flex: 50%;
-      max-width: 50%;
+      max-width: 90%;
     }
   }
 
@@ -195,12 +353,12 @@
     @media (orientation: landscape) {
       project {
         flex: 50%;
-        max-width: 50%;
+        max-width: 90%;
       }
     }
 
     project img {
-      filter: grayscale(0%);
+      filter: grayscale(0%) brightness(1.3) contrast(1.3);
     }
 
     project hint {
@@ -215,6 +373,8 @@
 </style>
 
 <body>
+  <!-- Add animated cyberpunk background -->
+  <canvas id="cyberpunk-bg" tabindex="-1" aria-hidden="true" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background:transparent;"></canvas>
   <nav>
     <a>Resume</a>
     <a href="mailto:alex.mourtziapis@gmail.com" target="_blank">Contact</a>
@@ -464,6 +624,458 @@
     gtag('js', new Date());
 
     gtag('config', 'UA-66672624-1');
+  </script>
+  <!-- Add animated geometric pattern script before closing body -->
+  <script>
+    // Cyberpunk animated geometric pattern
+    const canvas = document.getElementById('cyberpunk-bg');
+    const ctx = canvas.getContext('2d');
+    let w = window.innerWidth;
+    let h = window.innerHeight;
+
+    function setCanvasSize() {
+      // Use devicePixelRatio for crispness
+      let dpr = window.devicePixelRatio || 1;
+      if (isMobile) dpr = 0.7; // reduce resolution on mobile
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+      ctx.scale(dpr, dpr);
+    }
+    setCanvasSize();
+    window.addEventListener('resize', setCanvasSize);
+    // On orientation change (for mobile)
+    window.addEventListener('orientationchange', setCanvasSize);
+
+    // Helper for animated triangles crossing edges
+    function drawEdgeTriangle(edge, progress, color, size = 48) {
+      ctx.save();
+      ctx.globalAlpha = 0.7;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 18;
+
+      let x, y, angle;
+      switch (edge) {
+        case 'top':
+          x = w * progress;
+          y = 0;
+          angle = Math.PI / 2;
+          break;
+        case 'bottom':
+          x = w * progress;
+          y = h;
+          angle = -Math.PI / 2;
+          break;
+        case 'left':
+          x = 0;
+          y = h * progress;
+          angle = 0;
+          break;
+        case 'right':
+          x = w;
+          y = h * progress;
+          angle = Math.PI;
+          break;
+      }
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      ctx.moveTo(0, -size / 2);
+      ctx.lineTo(size / 2, size / 2);
+      ctx.lineTo(-size / 2, size / 2);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Helper for animated triangles crossing edges as a flock
+    function drawEdgeTriangleFlock(edge, baseProgress, color, size = 48, count = 5, spread = 0.06) {
+      for (let i = 0; i < count; i++) {
+        let progress = (baseProgress + i * spread) % 1;
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 18;
+
+        let x, y, angle;
+        switch (edge) {
+          case 'top':
+            x = w * progress;
+            y = 0;
+            angle = Math.PI / 2;
+            break;
+          case 'bottom':
+            x = w * progress;
+            y = h;
+            angle = -Math.PI / 2;
+            break;
+          case 'left':
+            x = 0;
+            y = h * progress;
+            angle = 0;
+            break;
+          case 'right':
+            x = w;
+            y = h * progress;
+            angle = Math.PI;
+            break;
+        }
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, -size / 2);
+        ctx.lineTo(size / 2, size / 2);
+        ctx.lineTo(-size / 2, size / 2);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Track hovered project index and positions
+    let hoveredProjectIndex = null;
+    let hoveredProjectIconPos = null;
+    // Track touch position for mobile
+    let touchActive = false;
+    let touchPos = null;
+
+    // Helper: get the center position of a project's image/icon (fixed for scroll)
+    function getProjectIconCenter(project) {
+      const img = project.querySelector('img');
+      if (!img) return null;
+      const rect = img.getBoundingClientRect();
+      // For fixed canvas, use viewport coordinates
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+
+    // Attach hover listeners to projects
+    window.addEventListener('DOMContentLoaded', () => {
+      const projects = document.querySelectorAll('projects > project');
+      projects.forEach((project, idx) => {
+        project.addEventListener('mouseenter', () => {
+          hoveredProjectIndex = idx;
+          hoveredProjectIconPos = getProjectIconCenter(project);
+        });
+        project.addEventListener('mousemove', () => {
+          hoveredProjectIconPos = getProjectIconCenter(project);
+        });
+        project.addEventListener('mouseleave', () => {
+          hoveredProjectIndex = null;
+          hoveredProjectIconPos = null;
+        });
+      });
+
+      // Touch events for triangles (anywhere on screen)
+      document.body.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          touchActive = true;
+          touchPos = { x: t.clientX, y: t.clientY };
+        }
+      }, { passive: true });
+      document.body.addEventListener('touchmove', function(e) {
+        if (touchActive && e.touches.length > 0) {
+          const t = e.touches[0];
+          touchPos = { x: t.clientX, y: t.clientY };
+        }
+      }, { passive: true });
+      document.body.addEventListener('touchend', function(e) {
+        touchActive = false;
+        touchPos = null;
+      }, { passive: true });
+    });
+
+    // Triangle "flock" state
+    let flockCount = isMobile ? 8 : 24;
+    let triangles = [];
+    function initTriangles() {
+      triangles = [];
+      for (let i = 0; i < flockCount; i++) {
+        // Each triangle starts at a random edge and position
+        const edges = ['top', 'bottom', 'left', 'right'];
+        const edge = edges[Math.floor(Math.random() * edges.length)];
+        const progress = Math.random();
+        triangles.push({
+          edge,
+          progress,
+          x: 0.2*Math.random() * w,
+          y: 0.5*Math.random() * h,
+          angle: Math.random() * Math.PI * 2,
+          tx: 0,
+          ty: 0,
+          tangle: 0,
+          color: ['#39ff14', '#00fff7', '#a259ff', '#ffe600'][i % 4],
+          jitter: Math.random() * 0.8 + 0.2
+        });
+      }
+    }
+    initTriangles();
+
+    // Helper: get edge position for a triangle
+    function getEdgePosition(edge, progress, size = 48) {
+      let x, y, angle;
+      switch (edge) {
+        case 'top':
+          x = w * progress;
+          y = 0;
+          angle = Math.PI / 2;
+          break;
+        case 'bottom':
+          x = w * progress;
+          y = h;
+          angle = -Math.PI / 2;
+          break;
+        case 'left':
+          x = 0;
+          y = h * progress;
+          angle = 0;
+          break;
+        case 'right':
+          x = w;
+          y = h * progress;
+          angle = Math.PI;
+          break;
+      }
+      return { x, y, angle };
+    }
+
+    // Animate triangles towards target (icon or touch) or back to edge
+    function updateTriangles(target) {
+      let useTarget = target;
+      if (touchActive && touchPos) {
+        useTarget = touchPos;
+      }
+      for (let i = 0; i < triangles.length; i++) {
+        let tri = triangles[i];
+        let size = 48;
+        let edgePos = getEdgePosition(tri.edge, tri.progress, size);
+
+        // If hovering or touch, move towards target with randomness
+        if (useTarget) {
+          let jitterRadius = 40 + Math.random() * 40;
+          let jitterAngle = Math.random() * Math.PI * 2;
+          let tx = useTarget.x + Math.cos(jitterAngle) * jitterRadius;
+          let ty = useTarget.y + Math.sin(jitterAngle) * jitterRadius;
+          tri.x += (tx - tri.x) * (0.04 * tri.jitter);
+          tri.y += (ty - tri.y) * (0.04 * tri.jitter);
+          tri.angle += (0 - tri.angle) * 0.04;
+        } else {
+          tri.x += (edgePos.x - tri.x) * (0.04 * tri.jitter);
+          tri.y += (edgePos.y - tri.y) * (0.04 * tri.jitter);
+          tri.angle += (edgePos.angle - tri.angle) * 0.04;
+        }
+      }
+    }
+
+    // Draw triangles at their positions
+    function drawTriangles(ctx, size = 48) {
+      for (let i = 0; i < triangles.length; i++) {
+        let tri = triangles[i];
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = tri.color;
+        ctx.lineWidth = 4;
+        ctx.shadowColor = tri.color;
+        ctx.shadowBlur = 18;
+        ctx.translate(tri.x, tri.y);
+        ctx.rotate(tri.angle + Math.sin(performance.now() * 0.001 + i) * 0.1); // add some wiggle
+        ctx.beginPath();
+        ctx.moveTo(0, -size / 2);
+        ctx.lineTo(size / 2, size / 2);
+        ctx.lineTo(-size / 2, size / 2);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+
+    // Screen tearing effect state
+    let tearingActive = false;
+    let tearingStrength = 0;
+    let tearingPhase = 0;
+    let tearingBurstTimer = 0;
+
+    function drawCyberpunkPattern(time) {
+      ctx.clearRect(0, 0, w, h);
+      ctx.globalAlpha = 0.7;
+
+      // Draw animated grid with blue, white, and gray shades (higher contrast)
+      let gridSize = isMobile ? 180 : 120;
+      // Screen tearing: burst only at hover start
+      let tearOffsets = [];
+      if (tearingBurstTimer > 0 || tearingStrength > 0.01) {
+        // Animate tearing strength for smooth in/out
+        if (tearingBurstTimer > 0) {
+          tearingStrength += (1 - tearingStrength) * 0.25;
+          tearingBurstTimer--;
+        } else {
+          tearingStrength += (0 - tearingStrength) * 0.12;
+        }
+        tearingStrength = Math.max(0, Math.min(1, tearingStrength));
+        tearingPhase += 0.18 + Math.random() * 0.08;
+        // For each grid row, generate a random offset
+        for (let y = 0; y < h; y += gridSize) {
+          // Use a combination of noise and sine for a tearing look
+          let base = Math.sin(tearingPhase + y * 0.09 + time * 0.008) * 18 * tearingStrength;
+          let rand = (Math.random() - 0.5) * 12 * tearingStrength;
+          tearOffsets.push(base + rand);
+        }
+      } else {
+        tearingStrength = 0;
+      }
+
+      let rowIdx = 0;
+      for (let x = 0; x < w; x += gridSize) {
+        rowIdx = 0;
+        for (let y = 0; y < h; y += gridSize) {
+          let t = time * 0.001 + (x + y) * 0.0002;
+          let offset = Math.sin(t) * 16;
+          // Apply tearing offset if active
+          let tearX = (tearOffsets.length > 0) ? tearOffsets[rowIdx] : 0;
+          // Vertical lines: ultra-bright neon blue
+          ctx.strokeStyle = 'rgba(0,255,255,0.95)';
+          ctx.shadowColor = '#00fff7';
+          ctx.shadowBlur = 12;
+          ctx.beginPath();
+          ctx.moveTo(x + offset + tearX, y);
+          ctx.lineTo(x + offset + tearX, y + gridSize);
+          ctx.stroke();
+
+          // Horizontal lines: bright white
+          ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+          ctx.shadowColor = '#ffffff';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.moveTo(x, y + offset + tearX);
+          ctx.lineTo(x + gridSize, y + offset + tearX);
+          ctx.stroke();
+          rowIdx++;
+        }
+      }
+
+      // Draw animated triangles in center with more randomness and wider span
+      const centerTriangleCount = 8; // fewer triangles for perf
+      for (let i = 0; i < centerTriangleCount; i++) {
+        let baseAngle = (time * 0.001 * (0.6 + Math.sin(i * 1.7) * 0.5) + i * 0.45) + Math.sin(time * 0.0012 + i) * 0.3;
+        let baseRadius = 260 + Math.sin(time * 0.002 + i * 1.3) * 120 + Math.cos(time * 0.0015 + i * 2.1) * 60;
+        let jitterX = Math.sin(time * 0.003 + i * 2.3) * 30;
+        let jitterY = Math.cos(time * 0.0025 + i * 1.9) * 30;
+        let cx = w / 2 + Math.cos(baseAngle) * baseRadius + jitterX;
+        let cy = h / 2 + Math.sin(baseAngle) * baseRadius + jitterY;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(baseAngle + Math.sin(time * 0.001 + i) * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(0, -32);
+        ctx.lineTo(28, 18);
+        ctx.lineTo(-28, 18);
+        ctx.closePath();
+        ctx.strokeStyle = i % 2 === 0 ? '#39ff14' : '#ff29ff';
+        ctx.lineWidth = 3.2;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.85;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // If a project is hovered, change background effect
+      if (hoveredProjectIndex !== null && hoveredProjectIconPos) {
+        let pulse = 0.5 + 0.5 * Math.sin(time * 0.005);
+        let colors = ['#39ff14', '#00fff7', '#ff29ff', '#ffe600'];
+        let color = colors[hoveredProjectIndex % colors.length];
+        let grad = ctx.createRadialGradient(hoveredProjectIconPos.x, hoveredProjectIconPos.y, 0, hoveredProjectIconPos.x, hoveredProjectIconPos.y, Math.max(w, h)/2 * pulse);
+        grad.addColorStop(0, color + '66'); // less intense center
+        grad.addColorStop(1, 'transparent');
+        ctx.save();
+        ctx.globalAlpha = 0.08 * pulse; // much dimmer bloom
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+        ctx.restore();
+      }
+
+      // Animate triangles
+      updateTriangles(hoveredProjectIconPos);
+      // Draw flock triangles with brighter neon, optimized
+      ctx.save();
+      ctx.globalAlpha = 1;
+      for (let i = 0; i < triangles.length; i++) {
+        let tri = triangles[i];
+        ctx.strokeStyle = tri.color;
+        ctx.lineWidth = 3.5;
+        ctx.shadowColor = tri.color;
+        ctx.shadowBlur = 10;
+        ctx.save();
+        ctx.translate(tri.x, tri.y);
+        ctx.rotate(tri.angle + Math.sin(performance.now() * 0.001 + i) * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(0, -24);
+        ctx.lineTo(20, 16);
+        ctx.lineTo(-20, 16);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+
+      ctx.globalAlpha = 1;
+    }
+
+    function animateCyberpunkBg(time) {
+      drawCyberpunkPattern(time);
+      if (!isMobile) {
+        requestAnimationFrame(animateCyberpunkBg);
+      }
+    }
+
+    if (isMobile) {
+      let lastDraw = 0;
+      let scrolling = false;
+      let scrollTimeout = null;
+      let paused = false;
+      function mobileBgLoop(time) {
+        if (!paused && time - lastDraw > 80) { // ~12fps for better perf
+          drawCyberpunkPattern(time);
+          lastDraw = time;
+        }
+        requestAnimationFrame(mobileBgLoop);
+      }
+      // Pause animation during scroll
+      window.addEventListener('scroll', function() {
+        paused = true;
+        if (scrollTimeout) clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(function() {
+          paused = false;
+        }, 180); // Resume 180ms after scroll ends
+      }, { passive: true });
+      mobileBgLoop(0);
+    } else {
+      animateCyberpunkBg(0);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const nameEl = document.querySelector('header .name');
+      const surnameEl = document.querySelector('header .surname');
+      [nameEl, surnameEl].forEach(el => {
+        if (el) {
+          el.addEventListener('mouseenter', () => {
+            tearingBurstTimer = 12;
+          });
+        }
+      });
+    });
   </script>
 </body>
 
