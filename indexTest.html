@@ -732,25 +732,22 @@
       }
     }
 
-    // Track hovered project index and positions
+    // Track hovered project index and positions (desktop) or touch position (mobile)
     let hoveredProjectIndex = null;
     let hoveredProjectIconPos = null;
+    let mobileTouchPos = null;
 
     // Helper: get the center position of a project's image/icon (fixed for scroll)
     function getProjectIconCenter(project) {
       const img = project.querySelector('img');
       if (!img) return null;
       const rect = img.getBoundingClientRect();
-      // Use window.scrollX/Y for horizontal/vertical scroll offset
-      // But canvas is fixed, so use rect.left/top relative to viewport only
-      // and adjust for canvas position if needed (here, canvas is fixed at 0,0)
       return {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2
       };
     }
 
-    // Attach hover listeners to projects
     window.addEventListener('DOMContentLoaded', () => {
       const projects = document.querySelectorAll('projects > project');
       projects.forEach((project, idx) => {
@@ -763,6 +760,25 @@
           hoveredProjectIconPos = null;
         });
       });
+
+      // On mobile, track touch position on the canvas
+      if (isMobile) {
+        canvas.addEventListener('touchstart', function(e) {
+          if (e.touches && e.touches.length > 0) {
+            const touch = e.touches[0];
+            mobileTouchPos = { x: touch.clientX, y: touch.clientY };
+          }
+        });
+        canvas.addEventListener('touchmove', function(e) {
+          if (e.touches && e.touches.length > 0) {
+            const touch = e.touches[0];
+            mobileTouchPos = { x: touch.clientX, y: touch.clientY };
+          }
+        });
+        canvas.addEventListener('touchend', function(e) {
+          mobileTouchPos = null;
+        });
+      }
     });
 
     // Triangle "flock" state
@@ -819,27 +835,29 @@
       return { x, y, angle };
     }
 
-    // Animate triangles towards target (icon) or back to edge
+    // Animate triangles towards target (icon/touch) or back to edge
     function updateTriangles(target) {
+      let flockTarget = null;
+      if (isMobile && mobileTouchPos) {
+        flockTarget = mobileTouchPos;
+      } else {
+        flockTarget = target;
+      }
       for (let i = 0; i < triangles.length; i++) {
         let tri = triangles[i];
         let size = 48;
         let edgePos = getEdgePosition(tri.edge, tri.progress, size);
 
-        // If hovering, move towards icon with randomness
-        if (target) {
-          // Target position is icon center, with random offset per triangle
+        // If hovering (desktop) or touching (mobile), move towards target with randomness
+        if (flockTarget) {
           let jitterRadius = 40 + Math.random() * 40;
           let jitterAngle = Math.random() * Math.PI * 2;
-          let tx = target.x + Math.cos(jitterAngle) * jitterRadius;
-          let ty = target.y + Math.sin(jitterAngle) * jitterRadius;
-          // Animate position
+          let tx = flockTarget.x + Math.cos(jitterAngle) * jitterRadius;
+          let ty = flockTarget.y + Math.sin(jitterAngle) * jitterRadius;
           tri.x += (tx - tri.x) * (0.04 * tri.jitter);
           tri.y += (ty - tri.y) * (0.04 * tri.jitter);
-          // Animate angle towards 0
           tri.angle += (0 - tri.angle) * 0.04;
         } else {
-          // Animate back to edge position
           tri.x += (edgePos.x - tri.x) * (0.04 * tri.jitter);
           tri.y += (edgePos.y - tri.y) * (0.04 * tri.jitter);
           tri.angle += (edgePos.angle - tri.angle) * 0.04;
@@ -1004,16 +1022,9 @@
 
     function animateCyberpunkBg(time) {
       drawCyberpunkPattern(time);
-      if (!isMobile) {
-        requestAnimationFrame(animateCyberpunkBg);
-      }
+      requestAnimationFrame(animateCyberpunkBg);
     }
-    if (isMobile) {
-      // Draw static background for mobile
-      drawCyberpunkPattern(0);
-    } else {
-      animateCyberpunkBg(0);
-    }
+    animateCyberpunkBg(0);
 
     // --- Screen tearing burst on .name and .surname hover ---
     window.addEventListener('DOMContentLoaded', () => {
