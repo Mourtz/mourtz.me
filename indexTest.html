@@ -59,14 +59,9 @@
 
   /* Animated geometric background */
   #cyberpunk-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
     z-index: -1;
-    pointer-events: none;
     background: transparent;
+    /* pointer-events enabled for touch */
   }
 
   header {
@@ -630,18 +625,47 @@
     // Cyberpunk animated geometric pattern
     const canvas = document.getElementById('cyberpunk-bg');
     const ctx = canvas.getContext('2d');
-    let w = window.innerWidth;
-    let h = window.innerHeight;
-    canvas.width = w;
-    canvas.height = h;
-
-    function resizeCanvas() {
+    function setCanvasDesktop() {
+      canvas.style.position = 'fixed';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = w;
       canvas.height = h;
     }
+
+    function setCanvasMobile() {
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.minHeight = '100vh';
+      w = Math.max(window.innerWidth, document.body.scrollWidth);
+      h = Math.max(window.innerHeight, document.body.scrollHeight);
+      canvas.width = w;
+      canvas.height = h;
+    }
+
+    function resizeCanvas() {
+      if (isMobile) {
+        setCanvasMobile();
+      } else {
+        setCanvasDesktop();
+      }
+    }
+
+    // Initial setup
+    resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    // On mobile, also update canvas size when DOM content changes (for dynamic page height)
+    if (isMobile) {
+      const resizeObserver = new MutationObserver(resizeCanvas);
+      resizeObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
+    }
 
     // Helper for animated triangles crossing edges
     function drawEdgeTriangle(edge, progress, color, size = 48) {
