@@ -635,7 +635,8 @@
 
     function setCanvasSize() {
       // Use devicePixelRatio for crispness
-      const dpr = window.devicePixelRatio || 1;
+      let dpr = window.devicePixelRatio || 1;
+      if (isMobile) dpr = 0.7; // reduce resolution on mobile
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = w * dpr;
@@ -796,7 +797,7 @@
     });
 
     // Triangle "flock" state
-    const flockCount = 20;
+    let flockCount = isMobile ? 8 : 20;
     let triangles = [];
     function initTriangles() {
       triangles = [];
@@ -911,7 +912,7 @@
       ctx.globalAlpha = 0.7;
 
       // Draw animated grid with blue, white, and gray shades (higher contrast)
-      let gridSize = 120; // larger grid for fewer lines
+      let gridSize = isMobile ? 180 : 120;
       // Screen tearing: burst only at hover start
       let tearOffsets = [];
       if (tearingBurstTimer > 0 || tearingStrength > 0.01) {
@@ -1045,7 +1046,7 @@
       let scrollTimeout = null;
       let paused = false;
       function mobileBgLoop(time) {
-        if (!paused && time - lastDraw > 50) { // ~20fps
+        if (!paused && time - lastDraw > 80) { // ~12fps for better perf
           drawCyberpunkPattern(time);
           lastDraw = time;
         }
