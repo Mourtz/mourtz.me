@@ -141,21 +141,27 @@
     color: var(--main-blue);
     margin: 0 5px;
     font-size: 1.7em;
-    text-shadow: 0 0 16px var(--main-blue), 0 0 24px var(--main-gray);
-    transition: color 0.2s, text-shadow 0.2s, transform 0.2s, box-shadow 0.2s;
-    border-radius: 50%;
+    text-shadow: none;
+    transition: color 0.2s, background 0.2s, transform 0.2s, border 0.2s;
+    border-radius: 4px;
     padding: 4px;
     background: transparent;
     box-shadow: none;
+    border: 2px solid transparent;
     display: inline-block;
+  }
+
+  .social a:last-child {
+    margin-right: 16px;
   }
 
   .social a:hover {
     color: var(--main-white);
-    text-shadow: 0 0 24px var(--main-blue-light), 0 0 32px var(--main-gray);
-    background: rgba(0, 170, 255, 0.12);
-    box-shadow: 0 0 18px var(--main-blue);
-    transform: scale(1.22);
+    text-shadow: none;
+    background: var(--main-blue);
+    border: 2px solid var(--main-blue-light);
+    box-shadow: none;
+    transform: scale(1.12);
     outline: none;
   }
 
