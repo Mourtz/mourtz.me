@@ -406,7 +406,7 @@
           </hint>
         </a>
       </project>
-      <project>
+      <project class="broken-link">
         <a title="Candulor AG world map" href="http://51.195.101.72/login.html" target="_blank"><img
             src="img/world-map.png">
           <hint>
@@ -545,6 +545,7 @@
         // Race between fetch and timeout
         await Promise.race([fetchPromise, timeoutPromise]);
         return true; // If we get here, the link is accessible
+        
       } catch (error) {
         return false; // Link is broken or inaccessible
       }
@@ -631,134 +632,70 @@
 
     gtag('config', 'UA-66672624-1');
   </script>
-  <!-- Add animated geometric pattern script before closing body -->
+  <script src="js/webgl-background.js"></script>
+  <script src="js/webgpu-renderer.js"></script>
   <script>
-    // Cyberpunk animated geometric pattern
     const canvas = document.getElementById('cyberpunk-bg');
-    const ctx = canvas.getContext('2d');
+    let renderer = null;
+
     let w = window.innerWidth;
     let h = window.innerHeight;
 
-    function setCanvasSize() {
-      // Use devicePixelRatio for crispness
-      let dpr = window.devicePixelRatio || 1;
-      if (isMobile) dpr = 0.7; // reduce resolution on mobile
-      w = window.innerWidth;
-      h = window.innerHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      canvas.style.width = w + 'px';
-      canvas.style.height = h + 'px';
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-      ctx.scale(dpr, dpr);
-    }
-    setCanvasSize();
-    window.addEventListener('resize', setCanvasSize);
-    // On orientation change (for mobile)
-    window.addEventListener('orientationchange', setCanvasSize);
-
-    // Helper for animated triangles crossing edges
-    function drawEdgeTriangle(edge, progress, color, size = 48) {
-      ctx.save();
-      ctx.globalAlpha = 0.85;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 18;
-
-      let x, y, angle;
-      switch (edge) {
-        case 'top':
-          x = w * progress;
-          y = 0;
-          angle = Math.PI / 2;
-          break;
-        case 'bottom':
-          x = w * progress;
-          y = h;
-          angle = -Math.PI / 2;
-          break;
-        case 'left':
-          x = 0;
-          y = h * progress;
-          angle = 0;
-          break;
-        case 'right':
-          x = w;
-          y = h * progress;
-          angle = Math.PI;
-          break;
+    function initRenderer() {
+      if (renderer) {
+          if(renderer.resize) renderer.resize();
+          return;
       }
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-      ctx.beginPath();
-      ctx.moveTo(0, -size / 2);
-      ctx.lineTo(size / 2, size / 2);
-      ctx.lineTo(-size / 2, size / 2);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.restore();
+
+      // 1. Try WebGPU
+      const supportWebGPU = navigator.gpu != undefined;
+      
+      if (supportWebGPU) {
+          try {
+              console.log("Initializing WebGPU Renderer...");
+              renderer = new WebGPURenderer(canvas);
+          } catch(e) {
+              console.warn("WebGPU Error:", e);
+              fallbackWebGL();
+          }
+      } else {
+          fallbackWebGL();
+      }
     }
 
-    // Helper for animated triangles crossing edges as a flock
-    function drawEdgeTriangleFlock(edge, baseProgress, color, size = 48, count = 5, spread = 0.06) {
-      for (let i = 0; i < count; i++) {
-        let progress = (baseProgress + i * spread) % 1;
-        ctx.save();
-        ctx.globalAlpha = 0.7;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 4;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 18;
-
-        let x, y, angle;
-        switch (edge) {
-          case 'top':
-            x = w * progress;
-            y = 0;
-            angle = Math.PI / 2;
-            break;
-          case 'bottom':
-            x = w * progress;
-            y = h;
-            angle = -Math.PI / 2;
-            break;
-          case 'left':
-            x = 0;
-            y = h * progress;
-            angle = 0;
-            break;
-          case 'right':
-            x = w;
-            y = h * progress;
-            angle = Math.PI;
-            break;
+    function fallbackWebGL() {
+        console.log("Falling back to WebGL Renderer...");
+        try {
+            renderer = new CyberpunkRenderer(canvas);
+            useFallbackTriangles = true;
+            initTriangles();
+        } catch(e) {
+            console.error("WebGL also failed:", e);
         }
-        ctx.translate(x, y);
-        ctx.rotate(angle);
-        ctx.beginPath();
-        ctx.moveTo(0, -size / 2);
-        ctx.lineTo(size / 2, size / 2);
-        ctx.lineTo(-size / 2, size / 2);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.restore();
-      }
     }
 
-    // Track hovered project index and positions
+    w = window.innerWidth;
+    h = window.innerHeight;
+    canvas.width = w;
+    canvas.height = h;
+    initRenderer();
+
+    // Resize handler
+    window.addEventListener('resize', function() {
+       w = window.innerWidth;
+       h = window.innerHeight;
+       if(renderer && renderer.resize) renderer.resize();
+    });
+
     let hoveredProjectIndex = null;
     let hoveredProjectIconPos = null;
-    // Track touch position for mobile
     let touchActive = false;
     let touchPos = null;
 
-    // Helper: get the center position of a project's image/icon (fixed for scroll)
     function getProjectIconCenter(project) {
       const img = project.querySelector('img');
       if (!img) return null;
       const rect = img.getBoundingClientRect();
-      // For fixed canvas, use viewport coordinates
       return {
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2
@@ -782,7 +719,7 @@
         });
       });
 
-      // Touch events for triangles (anywhere on screen)
+      // Touch events
       document.body.addEventListener('touchstart', function(e) {
         if (e.touches.length > 0) {
           const t = e.touches[0];
@@ -805,95 +742,61 @@
     // Triangle "flock" state
     let flockCount = isMobile ? 8 : 24;
     let triangles = [];
-    // Expanded neon color palette for all triangles
     const triangleColors = [
-      '#39ff14', // neon green
-      '#00fff7', // neon cyan
-      '#ff29ff', // neon magenta
-      '#ffe600', // neon yellow
-      '#ff5e00', // neon orange
-      '#00ff85', // neon mint
-      '#ff007c', // hot pink
-      '#00b3ff', // neon blue
-      '#ffb300', // gold
-      '#a259ff', // purple
-      '#ff3c3c', // red
-      '#00ffea', // aqua
-      '#fff',    // white
+      '#39ff14', '#00fff7', '#ff29ff', '#ffe600', '#ff5e00', 
+      '#00ff85', '#ff007c', '#00b3ff', '#ffb300', '#a259ff', 
+      '#ff3c3c', '#00ffea', '#fff'
     ];
+    
     // Center triangles state
     const centerTriangleCount = isMobile ? 4 : 8;
-    let centerTriangles = [];
+    // We store just colors for center triangles, detailed pos is calculated per frame
+    let centerTriangleColors = [];
+    
     function initTriangles() {
       triangles = [];
-      centerTriangles = [];
+      centerTriangleColors = [];
       for (let i = 0; i < flockCount; i++) {
         // Each triangle starts at a random edge and position
         const edges = ['top', 'bottom', 'left', 'right'];
         const edge = edges[Math.floor(Math.random() * edges.length)];
-        const progress = Math.random();
-        // Assign a random color from the palette
         const color = triangleColors[Math.floor(Math.random() * triangleColors.length)];
         triangles.push({
           edge,
-          progress,
+          progress: Math.random(),
           x: (0.2 + 0.7 * Math.random()) * w,
           y: (0.2 + 0.7 * Math.random()) * h,
           angle: Math.random() * Math.PI * 2,
-          tx: 0,
-          ty: 0,
-          tangle: 0,
           color: color,
           jitter: Math.random() * 0.8 + 0.2
         });
       }
-      // Assign random color to each center triangle
       for (let i = 0; i < centerTriangleCount; i++) {
-        centerTriangles[i] = triangleColors[Math.floor(Math.random() * triangleColors.length)];
+        centerTriangleColors[i] = triangleColors[Math.floor(Math.random() * triangleColors.length)];
       }
     }
-    initTriangles();
 
-    // Helper: get edge position for a triangle
-    function getEdgePosition(edge, progress, size = 48) {
+    let useFallbackTriangles = false;
+
+    function getEdgePosition(edge, progress) {
+      // Replicate edge logic
       let x, y, angle;
       switch (edge) {
-        case 'top':
-          x = w * progress;
-          y = 0;
-          angle = Math.PI / 2;
-          break;
-        case 'bottom':
-          x = w * progress;
-          y = h;
-          angle = -Math.PI / 2;
-          break;
-        case 'left':
-          x = 0;
-          y = h * progress;
-          angle = 0;
-          break;
-        case 'right':
-          x = w;
-          y = h * progress;
-          angle = Math.PI;
-          break;
+        case 'top': x = w * progress; y = 0; angle = Math.PI / 2; break;
+        case 'bottom': x = w * progress; y = h; angle = -Math.PI / 2; break;
+        case 'left': x = 0; y = h * progress; angle = 0; break;
+        case 'right': x = w; y = h * progress; angle = Math.PI; break;
       }
       return { x, y, angle };
     }
 
-    // Animate triangles towards target (icon or touch) or back to edge
     function updateTriangles(target) {
       let useTarget = target;
-      if (touchActive && touchPos) {
-        useTarget = touchPos;
-      }
+      if (touchActive && touchPos) useTarget = touchPos;
+      
       for (let i = 0; i < triangles.length; i++) {
         let tri = triangles[i];
-        let size = 48;
-        let edgePos = getEdgePosition(tri.edge, tri.progress, size);
-
-        // If hovering or touch, move towards target with randomness
+        let edgePos = getEdgePosition(tri.edge, tri.progress);
         if (useTarget) {
           let jitterRadius = 40 + Math.random() * 40;
           let jitterAngle = Math.random() * Math.PI * 2;
@@ -910,207 +813,93 @@
       }
     }
 
-    // Draw triangles at their positions
-    function drawTriangles(ctx, size = 48) {
-      for (let i = 0; i < triangles.length; i++) {
-        let tri = triangles[i];
-        ctx.save();
-        ctx.globalAlpha = 0.7;
-        ctx.strokeStyle = tri.color;
-        ctx.lineWidth = 4;
-        ctx.shadowColor = tri.color;
-        ctx.shadowBlur = 18;
-        ctx.translate(tri.x, tri.y);
-        ctx.rotate(tri.angle + Math.sin(performance.now() * 0.001 + i) * 0.1); // add some wiggle
-        ctx.beginPath();
-        ctx.moveTo(0, -size / 2);
-        ctx.lineTo(size / 2, size / 2);
-        ctx.lineTo(-size / 2, size / 2);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-
-
     // Screen tearing effect state
-    let tearingActive = false;
     let tearingStrength = 0;
     let tearingPhase = 0;
     let tearingBurstTimer = 0;
 
-    function drawCyberpunkPattern(time) {
-      // Fill with pure black for deepest background
-      ctx.save();
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, w, h);
-      ctx.restore();
-      ctx.globalAlpha = 1;
+    function renderLoop(timeData) {
+        const time = timeData * 0.001; 
+        const timeSec = timeData * 0.001;
 
-      // Draw animated grid with blue, white, and gray shades (higher contrast)
-      let gridSize = isMobile ? 180 : 120;
-      // Screen tearing: burst only at hover start
-      let tearOffsets = [];
-      if (tearingBurstTimer > 0 || tearingStrength > 0.01) {
-        // Animate tearing strength for smooth in/out
-        if (tearingBurstTimer > 0) {
-          tearingStrength += (1 - tearingStrength) * 0.25;
-          tearingBurstTimer--;
+        // Logic update
+        if (tearingBurstTimer > 0 || tearingStrength > 0.01) {
+            if (tearingBurstTimer > 0) {
+                tearingStrength += (1 - tearingStrength) * 0.25;
+                tearingBurstTimer--;
+            } else {
+                tearingStrength += (0 - tearingStrength) * 0.12;
+            }
+            tearingStrength = Math.max(0, Math.min(1, tearingStrength));
+            tearingPhase += 0.18 + Math.random() * 0.08;
         } else {
-          tearingStrength += (0 - tearingStrength) * 0.12;
+            tearingStrength = 0;
         }
-        tearingStrength = Math.max(0, Math.min(1, tearingStrength));
-        tearingPhase += 0.18 + Math.random() * 0.08;
-        // For each grid row, generate a random offset
-        for (let y = 0; y < h; y += gridSize) {
-          // Use a combination of noise and sine for a tearing look
-          let base = Math.sin(tearingPhase + y * 0.09 + time * 0.008) * 18 * tearingStrength;
-          let rand = (Math.random() - 0.5) * 12 * tearingStrength;
-          tearOffsets.push(base + rand);
+
+        let currentCenterTriangles = [];
+        if (useFallbackTriangles) {
+            updateTriangles(hoveredProjectIconPos);
+
+            // Calculate Center Triangles
+            for (let i = 0; i < centerTriangleCount; i++) {
+                let t = timeData;
+                let baseAngle = (t * 0.001 * (0.6 + Math.sin(i * 1.7) * 0.5) + i * 0.45) + Math.sin(t * 0.0012 + i) * 0.3;
+                let baseRadius = 260 + Math.sin(t * 0.002 + i * 1.3) * 120 + Math.cos(t * 0.0015 + i * 2.1) * 60;
+                let jitterX = Math.sin(t * 0.003 + i * 2.3) * 30;
+                let jitterY = Math.cos(t * 0.0025 + i * 1.9) * 30;
+                let cx = w / 2 + Math.cos(baseAngle) * baseRadius + jitterX;
+                let cy = h / 2 + Math.sin(baseAngle) * baseRadius + jitterY;
+                
+                currentCenterTriangles.push({
+                    x: cx,
+                    y: cy,
+                    angle: baseAngle + Math.sin(t * 0.001 + i) * 0.3,
+                    color: centerTriangleColors[i],
+                    isCenter: true
+                });
+            }
         }
-      } else {
-        tearingStrength = 0;
-      }
 
-      let rowIdx = 0;
-      for (let x = 0; x < w; x += gridSize) {
-        rowIdx = 0;
-        for (let y = 0; y < h; y += gridSize) {
-          let t = time * 0.001 + (x + y) * 0.0002;
-          let offset = Math.sin(t) * 16;
-          // Apply tearing offset if active
-          let tearX = (tearOffsets.length > 0) ? tearOffsets[rowIdx] : 0;
-          // Vertical lines: ultra-bright neon blue
-      ctx.strokeStyle = 'rgb(0,255,255)'; // pure neon cyan
-      ctx.shadowColor = '#00fff7';
-      ctx.shadowBlur = 10;
-      ctx.globalAlpha = 1;
-          ctx.beginPath();
-          ctx.moveTo(x + offset + tearX, y);
-          ctx.lineTo(x + offset + tearX, y + gridSize);
-          ctx.stroke();
-
-          // Horizontal lines: bright white
-      ctx.strokeStyle = 'rgb(255,255,255)'; // pure white
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 7;
-      ctx.globalAlpha = 1;
-          ctx.beginPath();
-          ctx.moveTo(x, y + offset + tearX);
-          ctx.lineTo(x + gridSize, y + offset + tearX);
-          ctx.stroke();
-          rowIdx++;
+        // Render
+        if (renderer) {
+            renderer.render(timeSec, {
+                tearStrength: tearingStrength,
+                tearPhase: tearingPhase,
+                hoverPos: hoveredProjectIconPos || touchPos,
+                triangles: triangles,
+                centerTriangles: currentCenterTriangles
+            });
         }
-      }
 
-      // Draw animated triangles in center with more randomness and wider span
-      for (let i = 0; i < centerTriangleCount; i++) {
-        let baseAngle = (time * 0.001 * (0.6 + Math.sin(i * 1.7) * 0.5) + i * 0.45) + Math.sin(time * 0.0012 + i) * 0.3;
-        let baseRadius = 260 + Math.sin(time * 0.002 + i * 1.3) * 120 + Math.cos(time * 0.0015 + i * 2.1) * 60;
-        let jitterX = Math.sin(time * 0.003 + i * 2.3) * 30;
-        let jitterY = Math.cos(time * 0.0025 + i * 1.9) * 30;
-        let cx = w / 2 + Math.cos(baseAngle) * baseRadius + jitterX;
-        let cy = h / 2 + Math.sin(baseAngle) * baseRadius + jitterY;
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(baseAngle + Math.sin(time * 0.001 + i) * 0.3);
-        ctx.beginPath();
-        ctx.moveTo(0, -32);
-        ctx.lineTo(28, 18);
-        ctx.lineTo(-28, 18);
-        ctx.closePath();
-        // Use the fixed random color for each center triangle
-        let color = centerTriangles[i] || triangleColors[0];
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 4.2;
-        ctx.shadowColor = ctx.strokeStyle;
-        ctx.shadowBlur = 12;
-        ctx.globalAlpha = 1;
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      // If a project is hovered, change background effect
-      if (hoveredProjectIndex !== null && hoveredProjectIconPos) {
-        let pulse = 0.5 + 0.5 * Math.sin(time * 0.005);
-        let colors = ['#39ff14', '#00fff7', '#ff29ff', '#ffe600'];
-        let color = colors[hoveredProjectIndex % colors.length];
-        // Make the bloom much more focused and less opaque
-        let bloomRadius = Math.min(w, h) * 0.22 * pulse + 120;
-        let grad = ctx.createRadialGradient(
-          hoveredProjectIconPos.x, hoveredProjectIconPos.y, 0,
-          hoveredProjectIconPos.x, hoveredProjectIconPos.y, bloomRadius
-        );
-        grad.addColorStop(0, color);
-        grad.addColorStop(0.25, color + 'cc');
-        grad.addColorStop(0.6, color + '22');
-        grad.addColorStop(1, 'transparent');
-        ctx.save();
-        ctx.globalAlpha = 0.18 * pulse + 0.09; // slightly more visible, but still focused
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, w, h);
-        ctx.restore();
-      }
-
-      // Animate triangles
-      updateTriangles(hoveredProjectIconPos);
-      // Draw flock triangles with brighter neon, optimized
-      ctx.save();
-      ctx.globalAlpha = 1;
-      for (let i = 0; i < triangles.length; i++) {
-        let tri = triangles[i];
-        ctx.strokeStyle = tri.color;
-        ctx.lineWidth = 4.5;
-        ctx.shadowColor = ctx.strokeStyle;
-        ctx.shadowBlur = 12;
-        ctx.globalAlpha = 1;
-        ctx.save();
-        ctx.translate(tri.x, tri.y);
-        ctx.rotate(tri.angle + Math.sin(performance.now() * 0.001 + i) * 0.1);
-        ctx.beginPath();
-        ctx.moveTo(0, -24);
-        ctx.lineTo(20, 16);
-        ctx.lineTo(-20, 16);
-        ctx.closePath();
-        ctx.stroke();
-        ctx.restore();
-      }
-      ctx.restore();
-
-      ctx.globalAlpha = 1;
-    }
-
-    function animateCyberpunkBg(time) {
-      drawCyberpunkPattern(time);
-      if (!isMobile) {
-        requestAnimationFrame(animateCyberpunkBg);
-      }
+        if (!isMobile) {
+            requestAnimationFrame(renderLoop);
+        }
     }
 
     if (isMobile) {
       let lastDraw = 0;
-      let scrolling = false;
-      let scrollTimeout = null;
       let paused = false;
-      function mobileBgLoop(time) {
-        if (!paused && time - lastDraw > 80) { // ~12fps for better perf
-          drawCyberpunkPattern(time);
-          lastDraw = time;
-        }
-        requestAnimationFrame(mobileBgLoop);
+      let scrollTimeout = null;
+      
+      function mobileBgLoop(timeData) {
+          if (!paused && timeData - lastDraw > 80) {
+              renderLoop(timeData);
+              lastDraw = timeData;
+          }
+           requestAnimationFrame(mobileBgLoop);
       }
-      // Pause animation during scroll
+      
       window.addEventListener('scroll', function() {
         paused = true;
         if (scrollTimeout) clearTimeout(scrollTimeout);
         scrollTimeout = setTimeout(function() {
           paused = false;
-        }, 180); // Resume 180ms after scroll ends
+        }, 180);
       }, { passive: true });
+      
       mobileBgLoop(0);
     } else {
-      animateCyberpunkBg(0);
+        requestAnimationFrame(renderLoop);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
