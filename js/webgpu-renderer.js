@@ -15,17 +15,43 @@ class WebGPURenderer {
         this.initialized = false;
         this.dpr = window.devicePixelRatio || 1;
 
+        // Bind resize handler for cleanup
+        this.resizeHandler = () => { setTimeout(() => this.resize(), 10); };
+        window.addEventListener('resize', this.resizeHandler);
+
         this.init().catch(err => {
-            console.error("WebGPU Init Failed:", err);
+            this.destroy();
+            console.info("WebGPU not available, falling back to WebGL.");
+            if (typeof window.fallbackWebGL === 'function') {
+                window.fallbackWebGL();
+            }
         });
 
         this.resize();
-        window.addEventListener('resize', () => { setTimeout(() => this.resize(), 10); });
+    }
+
+    destroy() {
+        window.removeEventListener('resize', this.resizeHandler);
+        if (this.device) {
+            this.device.destroy();
+            this.device = null;
+        }
+        this.initialized = false;
     }
 
     async init() {
         if (!navigator.gpu) throw new Error("No WebGPU");
-        const adapter = await navigator.gpu.requestAdapter();
+        
+        let adapter = null;
+        try {
+            adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+        } catch (e) { /* ignore */ }
+
+        if (!adapter) {
+            try {
+                adapter = await navigator.gpu.requestAdapter();
+            } catch (e) { /* ignore */ }
+        }
         if (!adapter) throw new Error("No Adapter");
 
         const limits = adapter.limits;

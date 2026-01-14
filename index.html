@@ -857,6 +857,7 @@
 
       if (isWebGPU) {
         console.warn(`WebGPU FPS ${fps.toFixed(1)} < ${FPS_MIN_THRESHOLD}. Downgrading to WebGL...`);
+        if (renderer.destroy) renderer.destroy();
         renderer = null;
         fallbackWebGL();
         rendererStartTime = performance.now();
@@ -864,6 +865,7 @@
         lastFpsUpdate = 0;
       } else {
         console.warn(`WebGL FPS ${fps.toFixed(1)} < ${FPS_MIN_THRESHOLD}. Disabling Renderer.`);
+        if (renderer.destroy) renderer.destroy();
         renderer = null;
         canvas.style.opacity = '0'; // Fade out
         setTimeout(() => { canvas.style.display = 'none'; }, 1000);
