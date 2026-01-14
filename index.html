@@ -4,6 +4,7 @@
 <head>
   <title>Projects of Alexandros Mourtziapis</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
   <link rel="icon" href="favicon.jpg" type="img/portfolio/x-icon">
   <link rel="shortcut icon" href="favicon.jpg" type="img/portfolio/x-icon">
@@ -348,6 +349,17 @@
       flex: 100%;
       max-width: 100%;
     }
+    
+    .name, .surname {
+      font-size: clamp(1.5rem, 11vw, 2.7rem);
+      display: block;
+      margin: 5px 0;
+      width: 100%;
+    }
+    
+    .title {
+      font-size: 1.1em;
+    }
   }
 
   @media (pointer:none), (pointer:coarse) {
@@ -380,7 +392,7 @@
 
 <body>
   <!-- Add animated cyberpunk background -->
-  <canvas id="cyberpunk-bg" tabindex="-1" aria-hidden="true" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;background:transparent;"></canvas>
+  <canvas id="cyberpunk-bg" tabindex="-1" aria-hidden="true" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block;"></canvas>
   <nav>
     <a>Resume</a>
     <a href="mailto:alex.mourtziapis@gmail.com" target="_blank">Contact</a>
@@ -641,6 +653,43 @@
     let w = window.innerWidth;
     let h = window.innerHeight;
 
+    // Triangle "flock" state
+    let flockCount = isMobile ? 5 : 24;
+    let triangles = [];
+    const triangleColors = [
+      '#39ff14', '#00fff7', '#ff29ff', '#ffe600', '#ff5e00', 
+      '#00ff85', '#ff007c', '#00b3ff', '#ffb300', '#a259ff', 
+      '#ff3c3c', '#00ffea', '#fff'
+    ];
+    
+    // Center triangles state
+    const centerTriangleCount = isMobile ? 2 : 8;
+    // We store just colors for center triangles, detailed pos is calculated per frame
+    let centerTriangleColors = [];
+    
+    function initTriangles() {
+      triangles = [];
+      centerTriangleColors = [];
+      for (let i = 0; i < flockCount; i++) {
+        // Each triangle starts at a random edge and position
+        const edges = ['top', 'bottom', 'left', 'right'];
+        const edge = edges[Math.floor(Math.random() * edges.length)];
+        const color = triangleColors[Math.floor(Math.random() * triangleColors.length)];
+        triangles.push({
+          edge,
+          progress: Math.random(),
+          x: (0.2 + 0.7 * Math.random()) * w,
+          y: (0.2 + 0.7 * Math.random()) * h,
+          angle: Math.random() * Math.PI * 2,
+          color: color,
+          jitter: Math.random() * 0.8 + 0.2
+        });
+      }
+      for (let i = 0; i < centerTriangleCount; i++) {
+        centerTriangleColors[i] = triangleColors[Math.floor(Math.random() * triangleColors.length)];
+      }
+    }
+
     function initRenderer() {
       if (renderer) {
           if(renderer.resize) renderer.resize();
@@ -648,7 +697,7 @@
       }
 
       // 1. Try WebGPU
-      const supportWebGPU = navigator.gpu != undefined;
+      const supportWebGPU = false& navigator.gpu != undefined;
       
       if (supportWebGPU) {
           try {
@@ -739,44 +788,7 @@
       }, { passive: true });
     });
 
-    // Triangle "flock" state
-    let flockCount = isMobile ? 8 : 24;
-    let triangles = [];
-    const triangleColors = [
-      '#39ff14', '#00fff7', '#ff29ff', '#ffe600', '#ff5e00', 
-      '#00ff85', '#ff007c', '#00b3ff', '#ffb300', '#a259ff', 
-      '#ff3c3c', '#00ffea', '#fff'
-    ];
-    
-    // Center triangles state
-    const centerTriangleCount = isMobile ? 4 : 8;
-    // We store just colors for center triangles, detailed pos is calculated per frame
-    let centerTriangleColors = [];
-    
-    function initTriangles() {
-      triangles = [];
-      centerTriangleColors = [];
-      for (let i = 0; i < flockCount; i++) {
-        // Each triangle starts at a random edge and position
-        const edges = ['top', 'bottom', 'left', 'right'];
-        const edge = edges[Math.floor(Math.random() * edges.length)];
-        const color = triangleColors[Math.floor(Math.random() * triangleColors.length)];
-        triangles.push({
-          edge,
-          progress: Math.random(),
-          x: (0.2 + 0.7 * Math.random()) * w,
-          y: (0.2 + 0.7 * Math.random()) * h,
-          angle: Math.random() * Math.PI * 2,
-          color: color,
-          jitter: Math.random() * 0.8 + 0.2
-        });
-      }
-      for (let i = 0; i < centerTriangleCount; i++) {
-        centerTriangleColors[i] = triangleColors[Math.floor(Math.random() * triangleColors.length)];
-      }
-    }
 
-    let useFallbackTriangles = false;
 
     function getEdgePosition(edge, progress) {
       // Replicate edge logic

@@ -31,13 +31,20 @@ class WebGPURenderer {
         const limits = adapter.limits;
         const maxInvo = limits.maxComputeInvocationsPerWorkgroup || 256;
         
+        // Check for mobile (using the helper from index.html or UA fallback)
+        const isMobile = (window.mobilecheck && window.mobilecheck()) || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         if (maxInvo >= 1024) {
-            this.params = { maxTile: 1024, tileSize: 32, curveCount: 8192 };
+            // High-end GPU
+            const count = isMobile ? 2048 : 8192;
+            this.params = { maxTile: 1024, tileSize: 32, curveCount: count };
             this.device = await adapter.requestDevice({
                 requiredLimits: { maxComputeInvocationsPerWorkgroup: maxInvo }
             });
         } else {
-            this.params = { maxTile: 128, tileSize: 16, curveCount: 4096 };
+            // Standard/Low-end GPU
+            const count = isMobile ? 1024 : 4096;
+            this.params = { maxTile: 128, tileSize: 16, curveCount: count };
             this.device = await adapter.requestDevice();
         }
         

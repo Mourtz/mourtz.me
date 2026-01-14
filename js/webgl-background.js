@@ -222,7 +222,7 @@ void main() {
     px.x += tearOffset * u_resolution.x;
 
     float gridSize = 120.0;
-    if (u_resolution.x < 800.0) gridSize = 180.0;
+    if (u_resolution.x < 800.0) gridSize = 60.0;
 
     vec2 p = px;
     float t = u_time * 2.0;
