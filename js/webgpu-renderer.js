@@ -5,11 +5,11 @@ class WebGPURenderer {
         this.device = null;
         this.context = null;
         this.format = navigator.gpu ? navigator.gpu.getPreferredCanvasFormat() : 'bgra8unorm';
-        
+
         this.pipelines = {};
         this.buffers = {};
         this.textures = {};
-        
+
         // Default params (overwritten in init)
         this.params = { maxTile: 128, tileSize: 16, curveCount: 1024 };
         this.initialized = false;
@@ -20,17 +20,17 @@ class WebGPURenderer {
         });
 
         this.resize();
-        window.addEventListener('resize', () => { setTimeout(()=>this.resize(), 10); });
+        window.addEventListener('resize', () => { setTimeout(() => this.resize(), 10); });
     }
 
     async init() {
         if (!navigator.gpu) throw new Error("No WebGPU");
         const adapter = await navigator.gpu.requestAdapter();
-        if(!adapter) throw new Error("No Adapter");
-        
+        if (!adapter) throw new Error("No Adapter");
+
         const limits = adapter.limits;
         const maxInvo = limits.maxComputeInvocationsPerWorkgroup || 256;
-        
+
         // Check for mobile (using the helper from index.html or UA fallback)
         const isMobile = (window.mobilecheck && window.mobilecheck()) || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -47,7 +47,7 @@ class WebGPURenderer {
             this.params = { maxTile: 128, tileSize: 16, curveCount: count };
             this.device = await adapter.requestDevice();
         }
-        
+
         console.log(`WebGPU Initialized: TileSize=${this.params.tileSize}, MaxTile=${this.params.maxTile}, Curves=${this.params.curveCount}`);
 
         this.context = this.canvas.getContext('webgpu');
@@ -62,16 +62,16 @@ class WebGPURenderer {
         this.dpr = window.devicePixelRatio || 1;
         const width = Math.floor(this.canvas.clientWidth * this.dpr);
         const height = Math.floor(this.canvas.clientHeight * this.dpr);
-        
+
         if (this.canvas.width !== width || this.canvas.height !== height) {
             this.canvas.width = width;
             this.canvas.height = height;
-            if(this.initialized) this.resizeAssets();
+            if (this.initialized) this.resizeAssets();
         }
     }
 
     resizeAssets() {
-        if(this.textures.output) this.textures.output.destroy();
+        if (this.textures.output) this.textures.output.destroy();
         this.textures.output = this.device.createTexture({
             size: [this.canvas.width, this.canvas.height],
             format: 'rgba16float',
@@ -81,8 +81,8 @@ class WebGPURenderer {
         // Bloom Texture (1/4 Resolution)
         const bloomW = Math.max(1, Math.floor(this.canvas.width / 4));
         const bloomH = Math.max(1, Math.floor(this.canvas.height / 4));
-        
-        if(this.textures.bloom) this.textures.bloom.destroy();
+
+        if (this.textures.bloom) this.textures.bloom.destroy();
         this.textures.bloom = this.device.createTexture({
             size: [bloomW, bloomH],
             format: 'rgba16float',
@@ -93,10 +93,10 @@ class WebGPURenderer {
         const tileDimY = Math.ceil(this.canvas.height / this.params.tileSize);
         const totalTiles = tileDimX * tileDimY;
 
-        if(this.buffers.tileCounts) this.buffers.tileCounts.destroy();
+        if (this.buffers.tileCounts) this.buffers.tileCounts.destroy();
         this.buffers.tileCounts = this.device.createBuffer({ size: totalTiles * 4, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
 
-        if(this.buffers.tileIndices) this.buffers.tileIndices.destroy();
+        if (this.buffers.tileIndices) this.buffers.tileIndices.destroy();
         const idxSize = totalTiles * this.params.maxTile * 4;
         this.buffers.tileIndices = this.device.createBuffer({ size: idxSize, usage: GPUBufferUsage.STORAGE });
 
@@ -105,19 +105,19 @@ class WebGPURenderer {
 
     initBuffers() {
         this.buffers.gridUni = this.device.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-        this.buffers.velloUni = this.device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST }); 
-        
+        this.buffers.velloUni = this.device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+
         this.initCurveAssets();
         this.resizeAssets();
     }
 
     initCurveAssets() {
         const cData = new Float32Array(this.params.curveCount * 16);
-        for(let i=0; i<this.params.curveCount; i++) {
-            const o = i*16;
-            cData[o+0] = Math.random(); 
-            cData[o+1] = Math.random();
-            cData[o+12] = i / this.params.curveCount; // Gradient ID
+        for (let i = 0; i < this.params.curveCount; i++) {
+            const o = i * 16;
+            cData[o + 0] = Math.random();
+            cData[o + 1] = Math.random();
+            cData[o + 12] = i / this.params.curveCount; // Gradient ID
         }
 
         this.buffers.curves = this.device.createBuffer({
@@ -129,10 +129,10 @@ class WebGPURenderer {
         // Segment buffer
         this.segmentsPerCurve = 24;
         const totalSegs = this.params.curveCount * this.segmentsPerCurve;
-        
-        if(this.buffers.segments) this.buffers.segments.destroy();
+
+        if (this.buffers.segments) this.buffers.segments.destroy();
         this.buffers.segments = this.device.createBuffer({
-            size: totalSegs * 32, 
+            size: totalSegs * 32,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
         });
     }
@@ -429,25 +429,25 @@ class WebGPURenderer {
         this.pipelines.blit = this.device.createRenderPipeline({
             layout: 'auto',
             vertex: { module: this.device.createShaderModule({ code: BLIT_SHADER }), entryPoint: 'vs' },
-            fragment: { 
-                module: this.device.createShaderModule({ code: BLIT_SHADER }), entryPoint: 'fs', 
-                targets: [{ format: this.format, blend: { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' } } }] 
+            fragment: {
+                module: this.device.createShaderModule({ code: BLIT_SHADER }), entryPoint: 'fs',
+                targets: [{ format: this.format, blend: { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha', operation: 'add' } } }]
             },
             primitive: { topology: 'triangle-list' }
         });
     }
 
     updateBindGroups() {
-        if(!this.textures.output) return;
+        if (!this.textures.output) return;
 
         this.pipelines.bgGrid = this.device.createBindGroup({
             layout: this.pipelines.grid.getBindGroupLayout(0),
             entries: [{ binding: 0, resource: { buffer: this.buffers.gridUni } }]
         });
-        
+
         // Sampler for Bloom Upscale
         const linearSampler = this.device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
-        
+
         this.pipelines.bgBlit = this.device.createBindGroup({
             layout: this.pipelines.blit.getBindGroupLayout(0),
             entries: [
@@ -460,7 +460,7 @@ class WebGPURenderer {
             layout: this.pipelines.clear.getBindGroupLayout(0),
             entries: [{ binding: 0, resource: this.textures.output.createView() }]
         });
-        
+
         this.pipelines.bgBloom = this.device.createBindGroup({
             layout: this.pipelines.bloom.getBindGroupLayout(0),
             entries: [
@@ -499,7 +499,7 @@ class WebGPURenderer {
     }
 
     render(time, state) {
-        if(!this.initialized || !this.device) return;
+        if (!this.initialized || !this.device) return;
 
         const width = this.canvas.width;
         const height = this.canvas.height;
@@ -512,11 +512,11 @@ class WebGPURenderer {
         const vUni = new ArrayBuffer(80);
         const vf = new Float32Array(vUni); const vu = new Uint32Array(vUni);
         vf[0] = width; vf[1] = height;
-        vf[2] = Math.sin(time*0.1) * 200.0; vf[3] = Math.cos(time*0.13) * 100.0; // Slow pan
-        vf[4] = 0.8 + Math.pow(Math.sin(time*0.2)*0.5 + 0.5, 2.0) * 3.0; // Zoom 0.8x to 3.8x
+        vf[2] = Math.sin(time * 0.1) * 200.0; vf[3] = Math.cos(time * 0.13) * 100.0; // Slow pan
+        vf[4] = 0.8 + Math.pow(Math.sin(time * 0.2) * 0.5 + 0.5, 2.0) * 3.0; // Zoom 0.8x to 3.8x
         vf[5] = time;
-        vu[6] = Math.ceil(width/this.params.tileSize);
-        vu[7] = Math.ceil(height/this.params.tileSize);
+        vu[6] = Math.ceil(width / this.params.tileSize);
+        vu[7] = Math.ceil(height / this.params.tileSize);
         vu[8] = this.params.tileSize;
         vu[9] = this.params.maxTile;
         this.device.queue.writeBuffer(this.buffers.velloUni, 0, vUni);
@@ -533,11 +533,11 @@ class WebGPURenderer {
         });
         passGrid.setPipeline(this.pipelines.grid);
         passGrid.setBindGroup(0, this.pipelines.bgGrid);
-        passGrid.draw(6); 
+        passGrid.draw(6);
         passGrid.end();
-        
+
         // 1.5 Clear Output Texture (for scene rendering)
-        const gridW = Math.ceil(width/16), gridH = Math.ceil(height/16);
+        const gridW = Math.ceil(width / 16), gridH = Math.ceil(height / 16);
         const passClr = enc.beginComputePass();
         passClr.setPipeline(this.pipelines.clear);
         passClr.setBindGroup(0, this.pipelines.bgClear);
@@ -558,7 +558,7 @@ class WebGPURenderer {
         const passBin = enc.beginComputePass();
         passBin.setPipeline(this.pipelines.bin);
         passBin.setBindGroup(0, this.pipelines.bgBin);
-        passBin.dispatchWorkgroups(Math.ceil(totalSegs/64)); 
+        passBin.dispatchWorkgroups(Math.ceil(totalSegs / 64));
         passBin.end();
 
         // 4. Rasterize Tiles to Output Texture
@@ -567,14 +567,14 @@ class WebGPURenderer {
         passRas.setBindGroup(0, this.pipelines.bgRas);
         passRas.dispatchWorkgroups(vu[6], vu[7]);
         passRas.end();
-        
+
         // 5. BLOOM Pass (Output -> BloomTex)
         const bloomW = Math.max(1, Math.floor(width / 4));
         const bloomH = Math.max(1, Math.floor(height / 4));
         const passBloom = enc.beginComputePass();
         passBloom.setPipeline(this.pipelines.bloom);
         passBloom.setBindGroup(0, this.pipelines.bgBloom);
-        passBloom.dispatchWorkgroups(Math.ceil(bloomW/8), Math.ceil(bloomH/8));
+        passBloom.dispatchWorkgroups(Math.ceil(bloomW / 8), Math.ceil(bloomH / 8));
         passBloom.end();
 
         // 6. Blit (Output + Bloom -> Screen)
@@ -595,7 +595,7 @@ class WebGPURenderer {
         // if(!this.frameCount) this.frameCount = 0;
         // this.frameCount++;
         // if(!this.lastTime) this.lastTime = performance.now();
-        
+
         // if(this.frameCount % 60 === 0) {
         //     const now = performance.now();
         //     const fps = 1000 / ((now - this.lastTime) / 60);

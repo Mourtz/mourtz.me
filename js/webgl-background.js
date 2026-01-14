@@ -4,10 +4,10 @@ class CyberpunkRenderer {
         this.canvas = canvas;
         this.gl = canvas.getContext('webgl2', { alpha: false, antialias: false });
         this.isWebGL2 = !!this.gl;
-        
+
         if (!this.isWebGL2) {
-            this.gl = canvas.getContext('webgl', { alpha: false, antialias: false }) || 
-                      canvas.getContext('experimental-webgl', { alpha: false, antialias: false });
+            this.gl = canvas.getContext('webgl', { alpha: false, antialias: false }) ||
+                canvas.getContext('experimental-webgl', { alpha: false, antialias: false });
         }
 
         if (!this.gl) {
@@ -26,7 +26,7 @@ class CyberpunkRenderer {
         } else {
             this.ext = this.gl.getExtension('ANGLE_instanced_arrays');
             this.oesDerivatives = this.gl.getExtension('OES_standard_derivatives');
-            
+
             this.gl.getExtension('OES_texture_float');
             this.linearFloat = this.gl.getExtension('OES_texture_float_linear');
             this.gl.getExtension('OES_texture_half_float');
@@ -41,7 +41,7 @@ class CyberpunkRenderer {
         this.initShaders();
         this.initBuffers();
         this.initFramebuffers();
-        
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
     }
@@ -50,6 +50,7 @@ class CyberpunkRenderer {
         const dpr = window.devicePixelRatio || 1;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const finalDpr = isMobile ? Math.min(dpr, 1.5) : dpr;
+        this.dpr = finalDpr;
 
         const displayWidth = Math.floor(this.canvas.clientWidth * finalDpr);
         const displayHeight = Math.floor(this.canvas.clientHeight * finalDpr);
@@ -68,7 +69,7 @@ class CyberpunkRenderer {
 
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
             console.error('Shader compile error:', this.gl.getShaderInfoLog(shader));
-            console.log('Shader Source Start:', source.trim().substring(0, 100)); 
+            console.log('Shader Source Start:', source.trim().substring(0, 100));
             this.gl.deleteShader(shader);
             return null;
         }
@@ -142,7 +143,7 @@ precision highp float;
             const fbo = this.gl.createFramebuffer();
             this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fbo);
             this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, tex, 0);
-            
+
             return { fbo, tex };
         };
 
@@ -151,11 +152,11 @@ precision highp float;
         this.texScene = scene.tex;
         const bloomW = Math.max(1, Math.floor(w * 0.5));
         const bloomH = Math.max(1, Math.floor(h * 0.5));
-        
+
         const blur1 = createFBO(bloomW, bloomH);
         this.fboBlur1 = blur1.fbo;
         this.texBlur1 = blur1.tex;
-        
+
         const blur2 = createFBO(bloomW, bloomH);
         this.fboBlur2 = blur2.fbo;
         this.texBlur2 = blur2.tex;
@@ -172,7 +173,7 @@ precision highp float;
         const _texture = this.isWebGL2 ? 'texture' : 'texture2D';
 
         // --- BACKGROUND GRID SHADER ---
-        
+
         const gridVs = `
 ${this.getShaderHeader(false)}
 ${_in} vec2 a_position;
@@ -184,7 +185,7 @@ void main() {
 `;
 
         const useDerivs = (this.isWebGL2 || this.oesDerivatives);
-        
+
         const gridFs = `
 ${this.getShaderHeader(true)}
 
@@ -259,7 +260,7 @@ void main() {
     ${_fragColor} = vec4(color, 1.0);
 }
 `;
-        
+
         this.gridProgram = this.createProgram(gridVs, gridFs);
 
         // --- TRIANGLE SHADER ---
@@ -309,7 +310,7 @@ void main() {
         this.triProgram = this.createProgram(triVs, triFs);
 
         // --- BLUR SHADER ---
-        
+
         const blurVs = `
 ${this.getShaderHeader(false)}
 ${_in} vec2 a_position;
@@ -414,17 +415,17 @@ void main() {
         this.quadBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadBuffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array([
-            -1, -1,  1, -1, -1,  1,
-            -1,  1,  1, -1,  1,  1,
+            -1, -1, 1, -1, -1, 1,
+            -1, 1, 1, -1, 1, 1,
         ]), this.gl.STATIC_DRAW);
 
         const triVerts = new Float32Array([
-             0.0, -0.5,
-             0.5,  0.5,
-            -0.5,  0.5,
-             0.0, -0.5 
+            0.0, -0.5,
+            0.5, 0.5,
+            -0.5, 0.5,
+            0.0, -0.5
         ]);
-        
+
         this.triGeoBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triGeoBuffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, triVerts, this.gl.STATIC_DRAW);
@@ -439,7 +440,7 @@ void main() {
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.clearColor(0.005, 0.005, 0.008, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        
+
         this.gl.enable(this.gl.BLEND);
         this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
@@ -452,12 +453,12 @@ void main() {
             this.gl.uniform1f(this.gl.getUniformLocation(this.gridProgram, 'u_tearPhase'), state.tearPhase || 0);
 
             if (state.hoverPos) {
-                this.gl.uniform2f(this.gl.getUniformLocation(this.gridProgram, 'u_hoverPos'), 
-                    state.hoverPos.x * window.devicePixelRatio, 
-                    (window.innerHeight - state.hoverPos.y) * window.devicePixelRatio);
+                this.gl.uniform2f(this.gl.getUniformLocation(this.gridProgram, 'u_hoverPos'),
+                    state.hoverPos.x * (this.dpr || 1),
+                    (window.innerHeight - state.hoverPos.y) * (this.dpr || 1));
                 this.gl.uniform1f(this.gl.getUniformLocation(this.gridProgram, 'u_hoverStrength'), 1.0);
             } else {
-                 this.gl.uniform1f(this.gl.getUniformLocation(this.gridProgram, 'u_hoverStrength'), 0.0);
+                this.gl.uniform1f(this.gl.getUniformLocation(this.gridProgram, 'u_hoverStrength'), 0.0);
             }
 
             const aPos = this.gl.getAttribLocation(this.gridProgram, 'a_position');
@@ -479,20 +480,20 @@ void main() {
 
             let ptr = 0;
             const parseColor = (str) => {
-                if(!str) return [1,1,1,1];
-                if(str.startsWith('#')) {
+                if (!str) return [1, 1, 1, 1];
+                if (str.startsWith('#')) {
                     let hex = str.slice(1);
-                    if(hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+                    if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
                     const bigInt = parseInt(hex, 16);
                     return [((bigInt >> 16) & 255) / 255, ((bigInt >> 8) & 255) / 255, (bigInt & 255) / 255, 1];
                 }
-                return [1,1,1,1];
+                return [1, 1, 1, 1];
             };
 
             for (let i = 0; i < instanceCount; i++) {
                 const tri = allTriangles[i];
-                data[ptr++] = tri.x;
-                data[ptr++] = tri.y;
+                data[ptr++] = tri.x * (this.dpr || 1);
+                data[ptr++] = tri.y * (this.dpr || 1);
                 data[ptr++] = tri.angle + Math.sin(time * 1.0 + i) * 0.1;
                 data[ptr++] = (tri.isCenter) ? 64.0 : 48.0;
                 const col = parseColor(tri.color);
@@ -509,19 +510,19 @@ void main() {
 
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.instanceBuffer);
             const stride = floatsPerInstance * 4;
-            
+
             const aOffset = this.gl.getAttribLocation(this.triProgram, 'a_offset');
             this.gl.enableVertexAttribArray(aOffset);
             this.gl.vertexAttribPointer(aOffset, 2, this.gl.FLOAT, false, stride, 0);
-            
+
             const aRot = this.gl.getAttribLocation(this.triProgram, 'a_rotation');
             this.gl.enableVertexAttribArray(aRot);
             this.gl.vertexAttribPointer(aRot, 1, this.gl.FLOAT, false, stride, 8);
-            
+
             const aScale = this.gl.getAttribLocation(this.triProgram, 'a_scale');
             this.gl.enableVertexAttribArray(aScale);
             this.gl.vertexAttribPointer(aScale, 1, this.gl.FLOAT, false, stride, 12);
-            
+
             const aColor = this.gl.getAttribLocation(this.triProgram, 'a_color');
             this.gl.enableVertexAttribArray(aColor);
             this.gl.vertexAttribPointer(aColor, 4, this.gl.FLOAT, false, stride, 16);
@@ -547,7 +548,7 @@ void main() {
         if (this.blurProgram) {
             const bloomW = this.canvas.width * 0.5;
             const bloomH = this.canvas.height * 0.5;
-            
+
             this.gl.useProgram(this.blurProgram);
             this.gl.uniform2f(this.gl.getUniformLocation(this.blurProgram, 'u_resolution'), bloomW, bloomH);
             const aPos = this.gl.getAttribLocation(this.blurProgram, 'a_position');
@@ -559,7 +560,7 @@ void main() {
             this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fboBlur1);
             this.gl.viewport(0, 0, bloomW, bloomH);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-            
+
             this.gl.activeTexture(this.gl.TEXTURE0);
             this.gl.bindTexture(this.gl.TEXTURE_2D, this.texScene);
             this.gl.uniform1i(this.gl.getUniformLocation(this.blurProgram, 'u_tex'), 0);
@@ -568,7 +569,7 @@ void main() {
 
             this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.fboBlur2);
             this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-            
+
             this.gl.bindTexture(this.gl.TEXTURE_2D, this.texBlur1);
             this.gl.uniform2f(this.gl.getUniformLocation(this.blurProgram, 'u_dir'), 0.0, 1.0);
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
@@ -578,20 +579,20 @@ void main() {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
         this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        
+
         if (this.compProgram) {
             this.gl.useProgram(this.compProgram);
             this.gl.uniform1f(this.gl.getUniformLocation(this.compProgram, 'u_bloomStrength'), 3.0); // Stronger bloom
-            
+
             this.gl.activeTexture(this.gl.TEXTURE0);
             this.gl.bindTexture(this.gl.TEXTURE_2D, this.texScene);
             this.gl.uniform1i(this.gl.getUniformLocation(this.compProgram, 'u_scene'), 0);
-            
+
             this.gl.activeTexture(this.gl.TEXTURE1);
             this.gl.bindTexture(this.gl.TEXTURE_2D, this.texBlur2);
             this.gl.uniform1i(this.gl.getUniformLocation(this.compProgram, 'u_bloom'), 1);
 
-            const baseAberration = 0.5 + (state.tearStrength || 0.0) * 5.0; 
+            const baseAberration = 0.5 + (state.tearStrength || 0.0) * 5.0;
             this.gl.uniform1f(this.gl.getUniformLocation(this.compProgram, 'u_aberration'), baseAberration);
             this.gl.uniform1f(this.gl.getUniformLocation(this.compProgram, 'u_time'), time);
 
@@ -599,7 +600,7 @@ void main() {
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadBuffer);
             this.gl.enableVertexAttribArray(aPos);
             this.gl.vertexAttribPointer(aPos, 2, this.gl.FLOAT, false, 0, 0);
-            
+
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
         }
     }
