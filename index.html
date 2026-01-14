@@ -652,6 +652,7 @@
 
     let w = window.innerWidth;
     let h = window.innerHeight;
+    let useFallbackTriangles = false;
 
     // Triangle "flock" state
     let flockCount = isMobile ? 5 : 24;
@@ -697,7 +698,7 @@
       }
 
       // 1. Try WebGPU
-      const supportWebGPU = false& navigator.gpu != undefined;
+      const supportWebGPU = navigator.gpu != undefined && !isMobile;
       
       if (supportWebGPU) {
           try {
