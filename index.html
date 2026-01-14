@@ -670,6 +670,29 @@
     const FPS_MIN_THRESHOLD = 10;
     const WARMUP_PERIOD = 4000;
 
+    // Track rendering focus state to avoid false positives in low-performance detection
+    let isFocused = true;
+
+    function handleFocusState(focused) {
+      isFocused = focused;
+      if (focused) {
+        // Reset performance monitors when regaining focus
+        // This prevents the huge time delta from backgrounding causing a 0 FPS calculation
+        lastFpsUpdate = performance.now();
+        frameCount = 0;
+        rendererStartTime = performance.now();
+        fps = 60;
+      }
+    }
+
+    // Handle tab switching and focus loss
+    document.addEventListener("visibilitychange", () => {
+      handleFocusState(!document.hidden);
+    });
+
+    window.addEventListener("focus", () => handleFocusState(true));
+    window.addEventListener("blur", () => handleFocusState(false));
+
     // Triangle "flock" state
     let flockCount = isMobile ? 5 : 24;
     let triangles = [];
@@ -879,7 +902,8 @@
         fps = frameCount * 1000 / (timeData - lastFpsUpdate);
         // console.log("FPS:", fps);
 
-        if (performance.now() - rendererStartTime > WARMUP_PERIOD) {
+        // Only check for low performance if the tab is focused and warmed up
+        if (isFocused && performance.now() - rendererStartTime > WARMUP_PERIOD) {
           if (fps < FPS_MIN_THRESHOLD) {
             handleLowPerformance();
           }

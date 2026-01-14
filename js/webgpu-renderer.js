@@ -393,18 +393,18 @@ class WebGPURenderer {
                 var col = vec3f(0.0);
                 var count = 0.0;
                 
-                // Simple Box Sample (4x4 area from source)
-                for(var y=0; y<4; y++) {
-                    for(var x=0; x<4; x++) {
+                // Simple Box Sample 
+                for(var y=-1; y<2; y++) {
+                    for(var x=-1; x<2; x++) {
                         let c = textureLoad(input_tex, base_uv + vec2i(x,y), 0).rgb;
                         // Threshold check (High threshold = only hotspots glow)
-                        let bright = max(c - vec3f(0.6), vec3f(0.0)); 
+                        let bright = max(c - vec3f(0.4), vec3f(0.0)); 
                         col += bright;
                         count += 1.0;
                     }
                 }
                 col = col / count; 
-                col *= 1.5; // Subtle Bloom Intensity
+                col *= col*2.5; // Subtle Bloom Intensity
                 
                 textureStore(output_tex, vec2i(id.xy), vec4f(col, 1.0));
             }
