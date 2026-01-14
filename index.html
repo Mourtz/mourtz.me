@@ -721,6 +721,8 @@
             initTriangles();
         } catch(e) {
             console.error("WebGL also failed:", e);
+            // Fallback to simple gradient
+            canvas.style.background = "linear-gradient(135deg, #070812 0%, #1a1e2c 100%)";
         }
     }
 
