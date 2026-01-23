@@ -12,8 +12,10 @@ class WebGPURenderer {
 
         // Default params (overwritten in init)
         this.params = { maxTile: 128, tileSize: 16, curveCount: 1024 };
+        // Dynamic Render Scale
+        this.renderScale = 0.85; // Default to 85% to save bandwidth
         this.initialized = false;
-        this.dpr = window.devicePixelRatio || 1;
+        this.dpr = (window.devicePixelRatio || 1) * this.renderScale;
 
         // Bind resize handler for cleanup
         this.resizeHandler = () => { setTimeout(() => this.resize(), 10); };
@@ -57,22 +59,24 @@ class WebGPURenderer {
         const limits = adapter.limits;
         const maxInvo = limits.maxComputeInvocationsPerWorkgroup || 256;
 
-        // Check for mobile (using the helper from index.html or UA fallback)
+        // Check for mobile
         const isMobile = (window.mobilecheck && window.mobilecheck()) || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        if (maxInvo >= 1024) {
-            // High-end GPU
-            const count = isMobile ? 2048 : 8192;
-            this.params = { maxTile: 1024, tileSize: 32, curveCount: count };
+        if (maxInvo >= 1024 && !isMobile) {
+            // High-end Desktop GPU
+            this.params = { maxTile: 512, tileSize: 16, curveCount: 4096 };
+            this.renderScale = 1.0; 
             this.device = await adapter.requestDevice({
                 requiredLimits: { maxComputeInvocationsPerWorkgroup: maxInvo }
             });
         } else {
-            // Standard/Low-end GPU
-            const count = isMobile ? 1024 : 4096;
-            this.params = { maxTile: 128, tileSize: 16, curveCount: count };
+            // Standard/Low-end or Mobile
+            this.params = { maxTile: 256, tileSize: 16, curveCount: isMobile ? 1024 : 2048 };
+            this.renderScale = 0.75;
             this.device = await adapter.requestDevice();
         }
+
+        this.dpr = (window.devicePixelRatio || 1) * this.renderScale;
 
         console.log(`WebGPU Initialized: TileSize=${this.params.tileSize}, MaxTile=${this.params.maxTile}, Curves=${this.params.curveCount}`);
 
@@ -85,7 +89,8 @@ class WebGPURenderer {
     }
 
     resize() {
-        this.dpr = window.devicePixelRatio || 1;
+        const dpr = window.devicePixelRatio || 1;
+        this.dpr = dpr * this.renderScale;
         const width = Math.floor(this.canvas.clientWidth * this.dpr);
         const height = Math.floor(this.canvas.clientHeight * this.dpr);
 
@@ -153,7 +158,7 @@ class WebGPURenderer {
         this.device.queue.writeBuffer(this.buffers.curves, 0, cData);
 
         // Segment buffer
-        this.segmentsPerCurve = 24;
+        this.segmentsPerCurve = 16; // Reduced from 24
         const totalSegs = this.params.curveCount * this.segmentsPerCurve;
 
         if (this.buffers.segments) this.buffers.segments.destroy();
@@ -213,7 +218,7 @@ class WebGPURenderer {
                 tile_dim_x: u32, tile_dim_y: u32,
                 tile_size: u32, max_per_tile: u32
             };
-            const SEG_PER_CURVE = 24u;
+            const SEG_PER_CURVE = 16u;
         `;
 
         const SHADER_SIM = `
@@ -326,44 +331,51 @@ class WebGPURenderer {
             @group(0) @binding(3) var output_tex: texture_storage_2d<rgba16float, write>;
             @group(0) @binding(4) var<uniform> global: Uniforms;
 
-            fn sdSegment(p: vec2f, a: vec2f, b: vec2f) -> f32 {
+            var<workgroup> s_indices: array<u32, 512>;
+
+            fn sdSegmentSq(p: vec2f, a: vec2f, b: vec2f) -> f32 {
                 let pa = p - a; let ba = b - a;
                 let h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-                return length(pa - ba * h);
+                let d = pa - ba * h;
+                return dot(d, d);
             }
 
             @compute @workgroup_size(${this.params.tileSize}, ${this.params.tileSize})
-            fn main(@builtin(global_invocation_id) gid: vec3u, @builtin(workgroup_id) wid: vec3u) {
+            fn main(
+                @builtin(global_invocation_id) gid: vec3u, 
+                @builtin(workgroup_id) wid: vec3u,
+                @builtin(local_invocation_index) lid: u32
+            ) {
                 let tx = wid.x; let ty = wid.y;
                 if (tx >= global.tile_dim_x || ty >= global.tile_dim_y) { return; }
                 let tile_idx = ty * global.tile_dim_x + tx;
-
                 let count = min(tile_counts[tile_idx], global.max_per_tile);
+
+                // Cooperative load of indices into shared memory
+                let base = tile_idx * global.max_per_tile;
+                for (var i = lid; i < count; i += ${this.params.tileSize * this.params.tileSize}) {
+                    s_indices[i] = tile_indices[base + i];
+                }
+                workgroupBarrier();
+
                 var col = vec4f(0.0);
                 let pix = vec2f(f32(gid.x)+0.5, f32(gid.y)+0.5);
-                let base = tile_idx * global.max_per_tile;
 
                 for(var i=0u; i<count; i++) {
-                    let s = segments[tile_indices[base + i]];
+                    let s = segments[s_indices[i]];
                     
-                    // OPTIMIZATION: Fast AABB Check
-                    // Only compute distance if pixel is within the segment's bounding box (+ radius)
-                    let min_p = min(s.p0, s.p1) - 4.5; // 4.0 radius + 0.5 margin
+                    // Fast AABB Check
+                    let min_p = min(s.p0, s.p1) - 4.5; 
                     let max_p = max(s.p0, s.p1) + 4.5;
                     
                     if (pix.x >= min_p.x && pix.x <= max_p.x && pix.y >= min_p.y && pix.y <= max_p.y) {
-                        let d = sdSegment(pix, s.p0, s.p1);
-                        let a = 1.0 - smoothstep(0.0, 4.0, d);
-                        if(a > 0.0) {
+                        let dSq = sdSegmentSq(pix, s.p0, s.p1);
+                        if (dSq < 16.0) {
+                            let a = 1.0 - smoothstep(0.0, 4.0, sqrt(dSq));
                             let sa = s.color.a * a;
-                            let src = s.color.rgb * sa;
-                            col = vec4f(col.rgb + src, col.a + sa); 
+                            col = vec4f(col.rgb + s.color.rgb * sa, col.a + sa); 
                             
-                            // OPTIMIZATION: Early Exit on Saturation
-                            // If pixel is fully white, adding more won't change display
-                            if(col.r >= 1.0 && col.g >= 1.0 && col.b >= 1.0) {
-                                break;
-                            }
+                            if(col.a >= 1.0) { break; }
                         }
                     }
                 }
