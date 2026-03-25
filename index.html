@@ -1061,8 +1061,13 @@
       rendererStartTime = performance.now();
 
       if (targetType === 'webgpu') {
+        if (!isSecureWebGPUContext() && navigator.gpu) {
+          redirectToHttpsGithub();
+          return false;
+        }
+
         if (!isWebGPUSupported()) {
-          showToast('WebGPU is not supported in this context (HTTP is insecure). Using WebGL instead.', 'error', 4000);
+          showToast('WebGPU is not supported in this browser. Using WebGL instead.', 'error', 4000);
           // Stay on current renderer or try WebGL
           if (supportsWebGL) {
             await initWebGLRenderer();
