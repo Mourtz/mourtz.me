@@ -874,26 +874,67 @@
       }
     }
 
+    function isSecureWebGPUContext() {
+      // WebGPU is allowed only in secure contexts (HTTPS or localhost/127.0.0.1)
+      return window.isSecureContext || location.protocol === 'https:' ||
+             location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    }
+
+    function getHttpsGithubUrl() {
+      // Redirect target as requested (GitHub Pages HTTPS canonical URL)
+      const origin = 'https://mourtz.github.io';
+      const path = location.pathname + location.search + location.hash;
+      return origin + path;
+    }
+
+    function redirectToHttpsGithub() {
+      const targetOrigin = 'https://mourtz.github.io';
+      const targetBase = 'https://mourtz.github.io/mourtz.me/';
+
+      // Avoid redirect loop when already at target or already secure github domain
+      if (location.href.startsWith(targetBase) || (location.protocol === 'https:' && location.hostname === 'mourtz.github.io')) {
+        console.log('Already on HTTPS GitHub page, not redirecting.');
+        return;
+      }
+
+      // Avoid double redirect during same navigation rerenders
+      if (location.href === targetBase) {
+        return;
+      }
+
+      const httpsUrl = targetBase;
+      console.log('Redirecting to HTTPS GitHub URL:', httpsUrl);
+      // no toast required per request; redirect immediately
+      location.replace(httpsUrl);
+    }
+
+    function isWebGPUSupported() {
+      return !!navigator.gpu && !isMobile && isSecureWebGPUContext();
+    }
+
     function initRenderer() {
       if (renderer) {
         if (renderer.resize) renderer.resize();
         return;
       }
 
-      // 1. Try WebGPU
-      const supportWebGPU = navigator.gpu != undefined && !isMobile;
+      if (!isSecureWebGPUContext() && navigator.gpu) {
+        redirectToHttpsGithub();
+        return;
+      }
 
-      if (supportWebGPU) {
+      if (isWebGPUSupported()) {
         try {
           console.log("Initializing WebGPU Renderer...");
           renderer = new WebGPURenderer(canvas);
           rendererStartTime = performance.now();
+          currentRendererType = 'webgpu';
         } catch (e) {
           console.warn("WebGPU Error:", e);
           fallbackWebGL();
         }
       } else {
-        console.warn("WebGPU not supported, trying WebGL...");
+        console.warn("WebGPU not supported or insecure context, trying WebGL...");
         fallbackWebGL();
       }
     }
@@ -913,7 +954,7 @@
     }
 
     // Renderer support detection
-    const supportsWebGPU = navigator.gpu !== undefined && !isMobile;
+    // Note: WebGPU also requires secure context. isWebGPUSupported() handles HTTPS/localhost checks.
     const supportsWebGL = (() => {
       try {
         const testCanvas = document.createElement('canvas');
@@ -1020,8 +1061,8 @@
       rendererStartTime = performance.now();
 
       if (targetType === 'webgpu') {
-        if (!supportsWebGPU) {
-          showToast('WebGPU is not supported by your browser. Try updating Chrome or Edge to the latest version.', 'error', 4000);
+        if (!isWebGPUSupported()) {
+          showToast('WebGPU is not supported in this context (HTTP is insecure). Using WebGL instead.', 'error', 4000);
           // Stay on current renderer or try WebGL
           if (supportsWebGL) {
             await initWebGLRenderer();
@@ -1101,30 +1142,41 @@
     }
 
     // Initialize renderer with type tracking
-    function initRendererWithTracking() {
+    async function initRendererWithTracking() {
       if (renderer) {
         if (renderer.resize) renderer.resize();
         return;
       }
 
-      if (supportsWebGPU) {
+      if (!isSecureWebGPUContext() && navigator.gpu) {
+        redirectToHttpsGithub();
+        return;
+      }
+
+      if (!isWebGPUSupported() && navigator.gpu) {
+        // on non-secure for localhost this will go WebGL fallback, but for arbitrary http we already redirected.
+        showToast('WebGPU requires HTTPS; using WebGL fallback on this page.', 'error', 5000);
+      }
+
+      if (isWebGPUSupported()) {
         try {
           console.log("Initializing WebGPU Renderer...");
           renderer = new WebGPURenderer(canvas);
           rendererStartTime = performance.now();
+          await waitForRendererInit(renderer, 3000);
           currentRendererType = 'webgpu';
         } catch (e) {
           console.warn("WebGPU Error:", e);
-          initWebGLRenderer();
+          await initWebGLRenderer();
         }
       } else {
-        initWebGLRenderer();
+        await initWebGLRenderer();
       }
 
       updateToggleButton();
     }
 
-    function initWebGLRenderer() {
+    async function initWebGLRenderer() {
       console.log("Initializing WebGL Renderer...");
       try {
         renderer = new CyberpunkRenderer(canvas);
