@@ -391,6 +391,138 @@
       padding: 10px 20px 10px 20px;
     }
   }
+
+  /* Renderer Toggle Button */
+  .renderer-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--main-gray);
+    background: rgba(10, 12, 18, 0.95);
+    border: 2px solid var(--main-blue-dark);
+    border-radius: 8px;
+    padding: 10px 18px;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 8px var(--main-blue);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .renderer-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 234, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .renderer-toggle:hover {
+    color: var(--main-blue-light);
+    border-color: var(--main-blue);
+    box-shadow: 0 0 20px var(--main-blue), 0 0 30px var(--main-gray);
+  }
+
+  .renderer-toggle:hover::before {
+    left: 100%;
+  }
+
+  .renderer-toggle:active {
+    transform: scale(0.97);
+  }
+
+  .renderer-toggle .toggle-label {
+    min-width: 55px;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  .renderer-toggle .toggle-icon {
+    font-size: 1.1em;
+    opacity: 0.8;
+  }
+
+  .renderer-toggle.active {
+    border-color: var(--main-blue-light);
+    color: var(--main-white);
+    background: linear-gradient(135deg, rgba(0, 153, 204, 0.3), rgba(10, 12, 18, 0.95));
+    box-shadow: 0 0 15px var(--main-blue), inset 0 0 10px rgba(0, 234, 255, 0.1);
+  }
+
+  /* Toast Notification */
+  .renderer-toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(10, 12, 18, 0.95);
+    border: 2px solid var(--main-blue);
+    border-radius: 12px;
+    padding: 16px 28px;
+    color: var(--main-white);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1em;
+    box-shadow: 0 0 30px var(--main-blue), 0 0 50px rgba(0, 234, 255, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-align: center;
+    max-width: 90vw;
+  }
+
+  .renderer-toast.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .renderer-toast.error {
+    border-color: #ff0059;
+    box-shadow: 0 0 30px #ff0059, 0 0 50px rgba(255, 0, 89, 0.3);
+  }
+
+  .renderer-toast.success {
+    border-color: #39ff14;
+    box-shadow: 0 0 30px #39ff14, 0 0 50px rgba(57, 255, 20, 0.3);
+  }
+
+  .renderer-toast .toast-title {
+    font-family: 'Orbitron', monospace;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: var(--main-blue-light);
+  }
+
+  .renderer-toast.error .toast-title {
+    color: #ff5588;
+  }
+
+  .renderer-toast.success .toast-title {
+    color: #39ff14;
+  }
+
+  @media screen and (max-width: 600px) {
+    .renderer-toggle {
+      padding: 6px 12px;
+      font-size: 0.8em;
+    }
+
+    .renderer-toggle .toggle-label {
+      min-width: 45px;
+    }
+  }
 </style>
 
 <body>
@@ -409,6 +541,18 @@
           class="fab fa-stack-overflow"></i></a>
     </div>
   </nav>
+
+  <!-- Renderer Toggle Button (fixed bottom left) -->
+  <button id="renderer-toggle" class="renderer-toggle" title="Switch between WebGL and WebGPU renderer">
+    <span class="toggle-icon">⚡</span>
+    <span class="toggle-label">WebGPU</span>
+  </button>
+
+  <!-- Toast notification for renderer switching -->
+  <div id="renderer-toast" class="renderer-toast">
+    <div class="toast-title">Renderer Status</div>
+    <div class="toast-message">Switching renderer...</div>
+  </div>
 
   <content id="content-wrapper">
 
@@ -654,7 +798,7 @@
   <script src="js/webgl-background.js"></script>
   <script src="js/webgpu-renderer.js"></script>
   <script>
-    const canvas = document.getElementById('cyberpunk-bg');
+    let canvas = document.getElementById('cyberpunk-bg');
     let renderer = null;
 
     let w = window.innerWidth;
@@ -666,9 +810,9 @@
     let lastFpsUpdate = 0;
     let frameCount = 0;
     let rendererStartTime = performance.now();
-    const FPS_CHECK_INTERVAL = 1000;
+    const FPS_CHECK_INTERVAL = 500;
     const FPS_MIN_THRESHOLD = 10;
-    const WARMUP_PERIOD = 4000;
+    const WARMUP_PERIOD = 10000;
 
     // Track rendering focus state to avoid false positives in low-performance detection
     let isFocused = true;
@@ -749,6 +893,7 @@
           fallbackWebGL();
         }
       } else {
+        console.warn("WebGPU not supported, trying WebGL...");
         fallbackWebGL();
       }
     }
@@ -767,11 +912,247 @@
       }
     }
 
+    // Renderer support detection
+    const supportsWebGPU = navigator.gpu !== undefined && !isMobile;
+    const supportsWebGL = (() => {
+      try {
+        const testCanvas = document.createElement('canvas');
+        return !!(testCanvas.getContext('webgl2') || testCanvas.getContext('webgl'));
+      } catch (e) {
+        return false;
+      }
+    })();
+
+    // Current renderer type tracking
+    let currentRendererType = 'none';
+
+    // Toast notification system
+    function showToast(message, type = 'info', duration = 3000) {
+      const toast = document.getElementById('renderer-toast');
+      const title = toast.querySelector('.toast-title');
+      const msg = toast.querySelector('.toast-message');
+
+      toast.classList.remove('error', 'success', 'show');
+
+      if (type === 'error') {
+        title.textContent = '⚠ Not Supported';
+        toast.classList.add('error');
+      } else if (type === 'success') {
+        title.textContent = '✓ Renderer Switched';
+        toast.classList.add('success');
+      } else {
+        title.textContent = '⚡ Renderer Status';
+      }
+
+      msg.textContent = message;
+
+      // Show the toast
+      requestAnimationFrame(() => {
+        toast.classList.add('show');
+      });
+
+      // Auto-hide after duration
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
+    // Update toggle button state
+    function updateToggleButton() {
+      const toggleBtn = document.getElementById('renderer-toggle');
+      const label = toggleBtn.querySelector('.toggle-label');
+      const icon = toggleBtn.querySelector('.toggle-icon');
+
+      if (currentRendererType === 'webgpu') {
+        label.textContent = 'WebGPU';
+        icon.textContent = '⚡';
+        toggleBtn.classList.add('active');
+      } else if (currentRendererType === 'webgl') {
+        label.textContent = 'WebGL';
+        icon.textContent = '🎮';
+        toggleBtn.classList.remove('active');
+      } else {
+        label.textContent = 'None';
+        icon.textContent = '⚠';
+        toggleBtn.classList.remove('active');
+      }
+    }
+
+    // Helper function to recreate canvas
+    function recreateCanvas() {
+      const oldCanvas = canvas;
+      const parent = oldCanvas.parentNode;
+      const newCanvas = document.createElement('canvas');
+
+      // Copy attributes
+      newCanvas.id = oldCanvas.id;
+      newCanvas.className = oldCanvas.className;
+      newCanvas.setAttribute('tabindex', oldCanvas.getAttribute('tabindex') || '-1');
+      newCanvas.setAttribute('aria-hidden', 'true');
+      newCanvas.style.cssText = oldCanvas.style.cssText;
+      newCanvas.width = w;
+      newCanvas.height = h;
+
+      // Replace the old canvas
+      parent.replaceChild(newCanvas, oldCanvas);
+
+      // Update the global reference
+      canvas = newCanvas;
+
+      return newCanvas;
+    }
+
+    // Switch renderer function
+    async function switchRenderer(targetType) {
+      // Destroy current renderer
+      if (renderer) {
+        if (renderer.destroy) renderer.destroy();
+        renderer = null;
+      }
+
+      // Recreate canvas to clear the context
+      recreateCanvas();
+
+      // Reset state
+      frameCount = 0;
+      lastFpsUpdate = 0;
+      fps = 60;
+      rendererStartTime = performance.now();
+
+      if (targetType === 'webgpu') {
+        if (!supportsWebGPU) {
+          showToast('WebGPU is not supported by your browser. Try updating Chrome or Edge to the latest version.', 'error', 4000);
+          // Stay on current renderer or try WebGL
+          if (supportsWebGL) {
+            await initWebGLRenderer();
+            updateToggleButton();
+          }
+          return false;
+        }
+        try {
+          console.log("Switching to WebGPU Renderer...");
+          renderer = new WebGPURenderer(canvas);
+          // Wait for WebGPU to initialize
+          await waitForRendererInit(renderer, 3000);
+          currentRendererType = 'webgpu';
+          useFallbackTriangles = false;
+          showToast('Now using WebGPU renderer for maximum performance!', 'success');
+          updateToggleButton();
+          return true;
+        } catch (e) {
+          console.error("WebGPU switch failed:", e);
+          showToast('Failed to initialize WebGPU: ' + e.message, 'error');
+          // Fallback to WebGL
+          recreateCanvas();
+          await initWebGLRenderer();
+          updateToggleButton();
+          return false;
+        }
+      } else if (targetType === 'webgl') {
+        if (!supportsWebGL) {
+          showToast('WebGL is not supported by your browser. Try enabling hardware acceleration.', 'error', 4000);
+          return false;
+        }
+        try {
+          console.log("Switching to WebGL Renderer...");
+          await initWebGLRenderer();
+          showToast('Now using WebGL renderer for broader compatibility!', 'success');
+          updateToggleButton();
+          return true;
+        } catch (e) {
+          console.error("WebGL switch failed:", e);
+          showToast('Failed to initialize WebGL: ' + e.message, 'error');
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // Wait for WebGPU renderer to initialize
+    function waitForRendererInit(renderer, timeout = 3000) {
+      return new Promise((resolve, reject) => {
+        const startTime = performance.now();
+        const checkInit = () => {
+          if (renderer.initialized) {
+            resolve();
+          } else if (performance.now() - startTime > timeout) {
+            reject(new Error('WebGPU initialization timeout'));
+          } else {
+            requestAnimationFrame(checkInit);
+          }
+        };
+        checkInit();
+      });
+    }
+
+    // Toggle button click handler
+    async function handleRendererToggle() {
+      const toggleBtn = document.getElementById('renderer-toggle');
+      toggleBtn.disabled = true;
+      toggleBtn.style.opacity = '0.6';
+
+      try {
+        const targetType = currentRendererType === 'webgpu' ? 'webgl' : 'webgpu';
+        await switchRenderer(targetType);
+      } finally {
+        toggleBtn.disabled = false;
+        toggleBtn.style.opacity = '1';
+      }
+    }
+
+    // Initialize renderer with type tracking
+    function initRendererWithTracking() {
+      if (renderer) {
+        if (renderer.resize) renderer.resize();
+        return;
+      }
+
+      if (supportsWebGPU) {
+        try {
+          console.log("Initializing WebGPU Renderer...");
+          renderer = new WebGPURenderer(canvas);
+          rendererStartTime = performance.now();
+          currentRendererType = 'webgpu';
+        } catch (e) {
+          console.warn("WebGPU Error:", e);
+          initWebGLRenderer();
+        }
+      } else {
+        initWebGLRenderer();
+      }
+
+      updateToggleButton();
+    }
+
+    function initWebGLRenderer() {
+      console.log("Initializing WebGL Renderer...");
+      try {
+        renderer = new CyberpunkRenderer(canvas);
+        rendererStartTime = performance.now();
+        useFallbackTriangles = true;
+        initTriangles();
+        currentRendererType = 'webgl';
+      } catch (e) {
+        console.error("WebGL also failed:", e);
+        currentRendererType = 'none';
+        canvas.style.background = "linear-gradient(135deg, #070812 0%, #1a1e2c 100%)";
+      }
+    }
+
     w = window.innerWidth;
     h = window.innerHeight;
     canvas.width = w;
     canvas.height = h;
-    initRenderer();
+    initRendererWithTracking();
+
+    // Setup toggle button event listener
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('renderer-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', handleRendererToggle);
+        updateToggleButton();
+      }
+    });
 
     // Resize handler
     window.addEventListener('resize', function () {
