@@ -905,15 +905,18 @@
         rendererStartTime = performance.now();
         useFallbackTriangles = true;
         initTriangles();
+        currentRendererType = 'webgl';
       } catch (e) {
         console.error("WebGL also failed:", e);
+        currentRendererType = 'none';
         // Fallback to simple gradient
         canvas.style.background = "linear-gradient(135deg, #070812 0%, #1a1e2c 100%)";
       }
     }
 
     // Renderer support detection
-    const supportsWebGPU = navigator.gpu !== undefined && !isMobile;
+    const isSecureContext = location.protocol === 'https:' || location.hostname === 'localhost';
+    const supportsWebGPU = navigator.gpu !== undefined && !isMobile && isSecureContext;
     const supportsWebGL = (() => {
       try {
         const testCanvas = document.createElement('canvas');
