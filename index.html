@@ -791,13 +791,13 @@
       } else { // desktops
         switch (index) {
           case 0:
-            window.location.href = "http://nwgl.amourtziapis.com/index?scene=subsurface";
+            window.location.href = "https://mourtz.github.io/nWGL-playground/index?scene=subsurface";
             break;
           case 1:
-            window.location.href = "http://nwgl.amourtziapis.com/index";
+            window.location.href = "https://mourtz.github.io/nWGL-playground/index";
             break;
           case 2:
-            window.location.href = "http://nwgl.amourtziapis.com/index?scene=volume";
+            window.location.href = "https://mourtz.github.io/nWGL-playground/index?scene=volume";
             break;
           default:
             break;
@@ -1167,6 +1167,32 @@
       if (toggleBtn) {
         toggleBtn.addEventListener('click', handleRendererToggle);
         updateToggleButton();
+      }
+
+      // Contact button: copy email to clipboard
+      const contactLink = document.querySelector('nav a[href^="mailto:"]');
+      if (contactLink) {
+        contactLink.addEventListener('click', function (e) {
+          e.preventDefault();
+          const email = this.href.replace('mailto:', '');
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(email).then(() => {
+              const toast = document.getElementById('renderer-toast');
+              const title = toast.querySelector('.toast-title');
+              const msg = toast.querySelector('.toast-message');
+              toast.classList.remove('error', 'success', 'show');
+              title.textContent = '✉ Email Copied';
+              msg.textContent = email;
+              toast.classList.add('success');
+              requestAnimationFrame(() => toast.classList.add('show'));
+              setTimeout(() => toast.classList.remove('show'), 3000);
+            }).catch(() => {
+              window.location.href = this.href;
+            });
+          } else {
+            window.location.href = this.href;
+          }
+        });
       }
     });
 
