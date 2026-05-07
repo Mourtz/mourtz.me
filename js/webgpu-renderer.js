@@ -432,18 +432,19 @@ class WebGPURenderer {
             @group(0) @binding(1) var t_bloom: texture_2d<f32>;
             @group(0) @binding(2) var s_lin: sampler;
             
-            @fragment fn fs(@builtin(position) p: vec4f) -> @location(0) vec4f { 
+            fn aces_filmic(x: vec3f) -> vec3f {
+                let a = 2.51; let b = 0.03; let c = 2.43; let d = 0.59; let e = 0.14;
+                return clamp((x * (a * x + b)) / (x * (c * x + d) + e), vec3f(0.0), vec3f(1.0));
+            }
+
+            @fragment fn fs(@builtin(position) p: vec4f) -> @location(0) vec4f {
                 let uv = p.xy / vec2f(textureDimensions(t_scene));
                 let scene = textureLoad(t_scene, vec2i(p.xy), 0);
                 let bloom = textureSampleLevel(t_bloom, s_lin, uv, 0.0);
-                
-                // Comp: Sharp Scene + Soft Glow
-                let hdr = scene.rgb + bloom.rgb * 0.6;
-                
-                // Classic Reinhard Tone Mapping
-                let mapped = hdr / (hdr + vec3f(1.0));
-                
-                return vec4f(mapped, 1.0);
+
+                let hdr = scene.rgb + bloom.rgb * 3;
+
+                return vec4f(pow(aces_filmic(hdr), vec3f(1.0 / 2.2)), 1.0);
             }
         `;
 
