@@ -11,8 +11,7 @@ class CyberpunkRenderer {
         }
 
         if (!this.gl) {
-            console.error('WebGL not supported');
-            return;
+            throw new Error('WebGL not supported');
         }
 
         this.ext = null;
@@ -33,8 +32,7 @@ class CyberpunkRenderer {
             this.gl.getExtension('OES_texture_half_float_linear');
 
             if (!this.ext) {
-                console.error('WebGL 1 found but ANGLE_instanced_arrays not supported');
-                return;
+                throw new Error('WebGL 1 found but ANGLE_instanced_arrays not supported');
             }
         }
 
@@ -43,7 +41,8 @@ class CyberpunkRenderer {
         this.initFramebuffers();
 
         this.resize();
-        window.addEventListener('resize', () => this.resize());
+        this.resizeHandler = () => this.resize();
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     resize() {
@@ -121,7 +120,9 @@ precision highp float;
         const h = this.canvas.height;
 
         let internalFormat, format, type;
-        if (this.isWebGL2 && this.colorBufferFloat) {
+        let useFloat = this.isWebGL2 && this.colorBufferFloat && this.linearFloat;
+
+        if (useFloat) {
             internalFormat = this.gl.RGBA16F;
             format = this.gl.RGBA;
             type = this.gl.HALF_FLOAT;
@@ -147,7 +148,18 @@ precision highp float;
             return { fbo, tex };
         };
 
-        const scene = createFBO(w, h);
+        let scene = createFBO(w, h);
+        if (useFloat && this.gl.checkFramebufferStatus(this.gl.FRAMEBUFFER) !== this.gl.FRAMEBUFFER_COMPLETE) {
+            console.warn("FBO with RGBA16F not complete, falling back to RGBA/UNSIGNED_BYTE");
+            this.gl.deleteFramebuffer(scene.fbo);
+            this.gl.deleteTexture(scene.tex);
+
+            internalFormat = this.gl.RGBA;
+            format = this.gl.RGBA;
+            type = this.gl.UNSIGNED_BYTE;
+            scene = createFBO(w, h);
+        }
+
         this.fboScene = scene.fbo;
         this.texScene = scene.tex;
         const bloomW = Math.max(1, Math.floor(w * 0.5));
@@ -409,6 +421,10 @@ void main() {
 }
 `;
         this.compProgram = this.createProgram(compVs, compFs);
+
+        if (!this.gridProgram || !this.triProgram || !this.blurProgram || !this.compProgram) {
+            throw new Error('Failed to compile or link WebGL shader programs');
+        }
     }
 
     initBuffers() {
@@ -534,6 +550,11 @@ void main() {
                 this.gl.vertexAttribDivisor(aScale, 1);
                 this.gl.vertexAttribDivisor(aColor, 1);
                 this.gl.drawArraysInstanced(this.gl.LINE_LOOP, 0, 4, instanceCount);
+
+                this.gl.vertexAttribDivisor(aOffset, 0);
+                this.gl.vertexAttribDivisor(aRot, 0);
+                this.gl.vertexAttribDivisor(aScale, 0);
+                this.gl.vertexAttribDivisor(aColor, 0);
             } else {
                 this.ext.vertexAttribDivisorANGLE(aModelPos, 0);
                 this.ext.vertexAttribDivisorANGLE(aOffset, 1);
@@ -541,7 +562,18 @@ void main() {
                 this.ext.vertexAttribDivisorANGLE(aScale, 1);
                 this.ext.vertexAttribDivisorANGLE(aColor, 1);
                 this.ext.drawArraysInstancedANGLE(this.gl.LINE_LOOP, 0, 4, instanceCount);
+
+                this.ext.vertexAttribDivisorANGLE(aOffset, 0);
+                this.ext.vertexAttribDivisorANGLE(aRot, 0);
+                this.ext.vertexAttribDivisorANGLE(aScale, 0);
+                this.ext.vertexAttribDivisorANGLE(aColor, 0);
             }
+
+            this.gl.disableVertexAttribArray(aModelPos);
+            this.gl.disableVertexAttribArray(aOffset);
+            this.gl.disableVertexAttribArray(aRot);
+            this.gl.disableVertexAttribArray(aScale);
+            this.gl.disableVertexAttribArray(aColor);
         }
 
         // 2. Blur Passes (Post-Processing)
@@ -602,6 +634,30 @@ void main() {
             this.gl.vertexAttribPointer(aPos, 2, this.gl.FLOAT, false, 0, 0);
 
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+        }
+    }
+
+    destroy() {
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
+
+        if (this.gl) {
+            if (this.fboScene) this.gl.deleteFramebuffer(this.fboScene);
+            if (this.texScene) this.gl.deleteTexture(this.texScene);
+            if (this.fboBlur1) this.gl.deleteFramebuffer(this.fboBlur1);
+            if (this.texBlur1) this.gl.deleteTexture(this.texBlur1);
+            if (this.fboBlur2) this.gl.deleteFramebuffer(this.fboBlur2);
+            if (this.texBlur2) this.gl.deleteTexture(this.texBlur2);
+
+            if (this.quadBuffer) this.gl.deleteBuffer(this.quadBuffer);
+            if (this.triGeoBuffer) this.gl.deleteBuffer(this.triGeoBuffer);
+            if (this.instanceBuffer) this.gl.deleteBuffer(this.instanceBuffer);
+
+            if (this.gridProgram) this.gl.deleteProgram(this.gridProgram);
+            if (this.triProgram) this.gl.deleteProgram(this.triProgram);
+            if (this.blurProgram) this.gl.deleteProgram(this.blurProgram);
+            if (this.compProgram) this.gl.deleteProgram(this.compProgram);
         }
     }
 }

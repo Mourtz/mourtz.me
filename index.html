@@ -921,9 +921,13 @@
         rendererStartTime = performance.now();
         useFallbackTriangles = true;
         initTriangles();
+        currentRendererType = 'webgl';
+        updateToggleButton();
       } catch (e) {
         console.error("WebGL also failed:", e);
         // Fallback to simple gradient
+        currentRendererType = 'none';
+        updateToggleButton();
         canvas.style.background = "linear-gradient(135deg, #070812 0%, #1a1e2c 100%)";
       }
     }
@@ -1040,7 +1044,11 @@
           showToast('WebGPU is not supported by your browser. Try updating Chrome or Edge to the latest version.', 'error', 4000);
           // Stay on current renderer or try WebGL
           if (supportsWebGL) {
-            await initWebGLRenderer();
+            try {
+              await initWebGLRenderer();
+            } catch (webglErr) {
+              console.error("WebGL switch fallback failed:", webglErr);
+            }
             updateToggleButton();
           }
           return false;
@@ -1060,7 +1068,11 @@
           showToast('Failed to initialize WebGPU: ' + e.message, 'error');
           // Fallback to WebGL
           recreateCanvas();
-          await initWebGLRenderer();
+          try {
+            await initWebGLRenderer();
+          } catch (webglErr) {
+            console.error("WebGL switch fallback failed:", webglErr);
+          }
           updateToggleButton();
           return false;
         }
@@ -1131,10 +1143,18 @@
           currentRendererType = 'webgpu';
         } catch (e) {
           console.warn("WebGPU Error:", e);
-          initWebGLRenderer();
+          try {
+            initWebGLRenderer();
+          } catch (webglErr) {
+            console.error("Both WebGPU and WebGL failed to initialize:", webglErr);
+          }
         }
       } else {
-        initWebGLRenderer();
+        try {
+          initWebGLRenderer();
+        } catch (webglErr) {
+          console.error("WebGL failed to initialize:", webglErr);
+        }
       }
 
       updateToggleButton();
@@ -1152,6 +1172,7 @@
         console.error("WebGL also failed:", e);
         currentRendererType = 'none';
         canvas.style.background = "linear-gradient(135deg, #070812 0%, #1a1e2c 100%)";
+        throw e;
       }
     }
 
